@@ -10,4 +10,5 @@ const {
 router.post("/login", login);
 router.post("/verify-otp", verifyEmailOtp);
 
+
 module.exports = router;
