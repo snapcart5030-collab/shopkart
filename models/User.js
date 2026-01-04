@@ -22,7 +22,20 @@ const userSchema = new mongoose.Schema(
       type: String,
       enum: ["user", "admin"],
       default: "user"
+    },
+
+    // 🔐 OTP STRUCTURE (ADD THIS)
+    emailOtp: {
+      type: String
+    },
+    emailOtpExpiry: {
+      type: Date
+    },
+    isEmailVerified: {
+      type: Boolean,
+      default: false
     }
+
   },
   { timestamps: true }
 );
