@@ -1,0 +1,19 @@
+# Node
+node_modules/
+
+# Environment files
+.env
+.env.*
+*.env
+
+# Build folders
+dist/
+build/
+coverage/
+
+# Firebase / Google secrets
+config/serviceAccountKey.json
+firebase/
+
+# Other
+api.txt
