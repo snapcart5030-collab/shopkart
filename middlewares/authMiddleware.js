@@ -5,34 +5,27 @@ const protect = async (req, res, next) => {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return res.status(401).json({
-        message: "Not authorized, token missing",
-      });
+      return res.status(401).json({ message: "Token missing" });
     }
 
     const token = authHeader.split(" ")[1];
 
-    const decodedToken = await admin.auth().verifyIdToken(token);
+    const decoded = await admin.auth().verifyIdToken(token);
 
-    if (!decodedToken.email_verified) {
-      return res.status(403).json({
-        message: "Email not verified",
-      });
+    if (!decoded.email_verified) {
+      return res.status(403).json({ message: "Email not verified" });
     }
 
-    // attach user info to request
     req.user = {
-      uid: decodedToken.uid,
-      email: decodedToken.email,
+      uid: decoded.uid,
+      email: decoded.email,
     };
 
     next();
-  } catch (error) {
-    console.error("Auth error:", error.message);
-    return res.status(401).json({
-      message: "Not authorized, invalid token",
-    });
+  } catch (err) {
+    console.error("Auth error:", err.message);
+    return res.status(401).json({ message: "Invalid token" });
   }
 };
 
-module.exports = { protect };
+module.exports = protect; // 🔥 ONLY THIS

@@ -1,7 +1,15 @@
 const express = require("express");
+const cors = require("cors");
+
 const app = express();
 
 // ================== MIDDLEWARE ==================
+app.use(cors({
+  origin: "*",   // allow all (for now)
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
 app.use(express.json());
 
 // ================== AUTH & USER ==================
@@ -39,7 +47,6 @@ app.use("/api/admin/orders", require("./routes/adminOrderRoutes"));
 app.get("/", (req, res) => {
   res.send("✅ ShopKart API Running Successfully");
 });
-
 
 // ================== 404 HANDLER ==================
 app.use((req, res) => {

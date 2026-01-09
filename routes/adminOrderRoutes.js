@@ -5,7 +5,7 @@ const {
   updateOrderStatus
 } = require("../controllers/adminOrderController");
 
-const { protect } = require("../middlewares/authMiddleware");
+const  protect  = require("../middlewares/authMiddleware");
 const { isAdmin } = require("../middlewares/adminMiddleware");
 
 router.get("/", protect, isAdmin, getAllOrders);

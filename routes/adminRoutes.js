@@ -1,21 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const {
-  dashboard,
-  getUsers,
-  changeRole,
-  deleteUser
-} = require("../controllers/adminController");
 
-const { protect } = require("../middlewares/authMiddleware");
-const { isAdmin } = require("../middlewares/adminMiddleware");
+const protect = require("../middlewares/authMiddleware");
 
-// 📊 Dashboard
-router.get("/dashboard", protect, isAdmin, dashboard);
+console.log("TYPE OF protect:", typeof protect); // 🔥 DEBUG LINE
 
-// 👥 Users
-router.get("/users", protect, isAdmin, getUsers);
-router.put("/user/:id/role", protect, isAdmin, changeRole);
-router.delete("/user/:id", protect, isAdmin, deleteUser);
+const adminDashboard = (req, res) => {
+  res.json({
+    message: "Admin dashboard access granted",
+    user: req.user,
+  });
+};
+
+router.get("/dashboard", protect, adminDashboard);
 
 module.exports = router;
