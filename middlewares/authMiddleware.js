@@ -1,51 +1,76 @@
-const admin = require("firebase-admin");
+const admin = require("../config/firebaseAdmin");
 
 const protect = async (req, res, next) => {
   try {
+    console.log("\n🔐 Auth Middleware Called");
+    console.log("URL:", req.originalUrl);
+    console.log("Headers:", Object.keys(req.headers));
+
+    // Get token from header
     const authHeader = req.headers.authorization;
     
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader) {
+      console.log("❌ No Authorization header");
       return res.status(401).json({ 
-        message: "Unauthorized. No token provided." 
+        success: false,
+        message: "No authorization token provided" 
       });
     }
 
-    const token = authHeader.split(" ")[1];
+    // Extract token (handle both "Bearer token" and just "token")
+    let token;
+    if (authHeader.startsWith("Bearer ")) {
+      token = authHeader.substring(7);
+    } else {
+      token = authHeader;
+    }
     
-    if (!token) {
+    console.log("Token length:", token.length);
+    console.log("Token (first 30 chars):", token.substring(0, 30) + "...");
+
+    if (!token || token === "null" || token === "undefined") {
+      console.log("❌ Token is empty or invalid");
       return res.status(401).json({ 
-        message: "Unauthorized. Invalid token format." 
+        success: false,
+        message: "Invalid token" 
       });
     }
 
     // Verify Firebase token
-    const decodedToken = await admin.auth().verifyIdToken(token);
-    
-    // Attach user info to request
+    console.log("Verifying token...");
+    let decodedToken;
+    try {
+      decodedToken = await admin.auth().verifyIdToken(token);
+      console.log("✅ Token verified successfully!");
+      console.log("User UID:", decodedToken.uid);
+      console.log("User Email:", decodedToken.email || "No email");
+    } catch (verifyError) {
+      console.error("❌ Token verification failed:", verifyError.message);
+      console.error("Error code:", verifyError.code);
+      
+      return res.status(401).json({
+        success: false,
+        message: "Invalid or expired token. Please login again."
+      });
+    }
+
+    // Attach user to request
     req.user = {
       uid: decodedToken.uid,
-      email: decodedToken.email,
+      email: decodedToken.email || "",
       name: decodedToken.name || "",
     };
     
+    console.log("✅ User authenticated:", req.user.email);
+    console.log("🔐 Auth Middleware Complete\n");
+    
     next();
+    
   } catch (error) {
-    console.error("Auth middleware error:", error.message);
-    
-    if (error.code === "auth/id-token-expired") {
-      return res.status(401).json({ 
-        message: "Token expired. Please login again." 
-      });
-    }
-    
-    if (error.code === "auth/id-token-revoked") {
-      return res.status(401).json({ 
-        message: "Token revoked. Please login again." 
-      });
-    }
-    
-    res.status(401).json({ 
-      message: "Unauthorized. Invalid token." 
+    console.error("❌ Auth middleware error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Authentication failed"
     });
   }
 };
