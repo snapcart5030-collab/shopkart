@@ -1,123 +1,128 @@
+// routes/profileRoutes.js
 const express = require("express");
 const router = express.Router();
-
 const protect = require("../middlewares/authMiddleware");
 const User = require("../models/User");
 
-/**
- * @route   GET /api/profile
- * @desc    Get logged-in user profile
- * @access  Private
- */
+// GET profile
 router.get("/", protect, async (req, res) => {
   try {
     let user = await User.findOne({ uid: req.user.uid });
-
-    // 🆕 First login → auto create user
+    
     if (!user) {
-      user = await User.create({
-        uid: req.user.uid,
-        email: req.user.email,
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found" 
       });
     }
-
+    
     res.json({
-      uid: user.uid,
-      email: user.email,
-      name: user.name,
-      mobile: user.mobile,
-      role: user.role,
-      createdAt: user.createdAt,
-      message: "Profile fetched successfully",
+      success: true,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        name: user.name,
+        mobile: user.mobile,
+        role: user.role,
+        createdAt: user.createdAt
+      }
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-/**
- * @route   POST /api/profile
- * @desc    Create profile manually (optional)
- * @access  Private
- */
+// POST - Create profile (for registration)
 router.post("/", protect, async (req, res) => {
   try {
     const { name, mobile } = req.body;
-
-    let user = await User.findOne({ uid: req.user.uid });
-    if (user) {
-      return res.status(400).json({ message: "Profile already exists" });
+    
+    // Check if user already exists
+    const existingUser = await User.findOne({ uid: req.user.uid });
+    
+    if (existingUser) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "User already exists" 
+      });
     }
-
-    user = await User.create({
+    
+    // Create new user
+    const user = new User({
       uid: req.user.uid,
       email: req.user.email,
       name: name || "",
       mobile: mobile || "",
+      role: "user"
     });
-
-    res.status(201).json({
+    
+    await user.save();
+    
+    res.json({
+      success: true,
       message: "Profile created successfully",
-      user,
+      user: {
+        uid: user.uid,
+        email: user.email,
+        name: user.name,
+        mobile: user.mobile,
+        role: user.role
+      }
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    
+  } catch (error) {
+    console.error(error);
+    
+    if (error.code === 11000 && error.keyPattern.mobile) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Mobile number already registered" 
+      });
+    }
+    
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
-/**
- * @route   PUT /api/profile
- * @desc    Update profile (name, mobile)
- * @access  Private
- */
+// PUT - Update profile
 router.put("/", protect, async (req, res) => {
   try {
     const { name, mobile } = req.body;
-
+    
     const user = await User.findOneAndUpdate(
       { uid: req.user.uid },
       {
-        name: name ?? "",
-        mobile: mobile ?? "",
+        name: name || "",
+        mobile: mobile || "",
       },
       { new: true }
     );
-
+    
     if (!user) {
-      return res.status(404).json({ message: "Profile not found" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "User not found" 
+      });
     }
-
+    
     res.json({
+      success: true,
       message: "Profile updated successfully",
-      user,
+      user
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
-  }
-});
-
-/**
- * @route   DELETE /api/profile
- * @desc    Delete user profile (DB only)
- * @access  Private
- */
-router.delete("/", protect, async (req, res) => {
-  try {
-    const user = await User.findOneAndDelete({ uid: req.user.uid });
-
-    if (!user) {
-      return res.status(404).json({ message: "Profile not found" });
+    
+  } catch (error) {
+    console.error(error);
+    
+    if (error.code === 11000 && error.keyPattern.mobile) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Mobile number already registered" 
+      });
     }
-
-    res.json({
-      message: "Profile deleted successfully",
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Server error" });
+    
+    res.status(500).json({ success: false, message: "Server error" });
   }
 });
 
