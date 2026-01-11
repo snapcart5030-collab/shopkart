@@ -10,16 +10,18 @@ const calculateTotal = (items) => {
 
 // ➕ ADD TO CART
 exports.addToCart = async (req, res) => {
-  const { userId, product } = req.body;
+  const { userId, email, product } = req.body;
 
   let cart = await Cart.findOne({ userId });
 
   if (!cart) {
     cart = await Cart.create({
       userId,
+      email,
       items: [product],
       totalPrice: product.price * product.quantity
     });
+
   } else {
     const index = cart.items.findIndex(
       (i) => i.productId.toString() === product.productId

@@ -3,9 +3,14 @@ const mongoose = require("mongoose");
 const cartSchema = new mongoose.Schema(
   {
     userId: {
-      type: String,   // ✅ Firebase UID
+      type: mongoose.Schema.Types.ObjectId,
       required: true,
       unique: true
+    },
+
+    email: {
+      type: String,
+      required: true
     },
 
     items: [
@@ -28,5 +33,6 @@ const cartSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
 
 module.exports = mongoose.model("Cart", cartSchema);
