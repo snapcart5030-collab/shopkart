@@ -4,71 +4,61 @@ const protect = async (req, res, next) => {
   try {
     console.log("\n🔐 Auth Middleware Called");
     console.log("URL:", req.originalUrl);
-    console.log("Headers:", Object.keys(req.headers));
 
-    // Get token from header
+    // 1️⃣ Get Authorization header
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader) {
-      console.log("❌ No Authorization header");
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
-        message: "No authorization token provided" 
+        message: "Authorization token missing"
       });
     }
 
-    // Extract token (handle both "Bearer token" and just "token")
-    let token;
-    if (authHeader.startsWith("Bearer ")) {
-      token = authHeader.substring(7);
-    } else {
-      token = authHeader;
-    }
-    
-    console.log("Token length:", token.length);
-    console.log("Token (first 30 chars):", token.substring(0, 30) + "...");
+    // 2️⃣ Extract token (Bearer or raw)
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : authHeader;
 
     if (!token || token === "null" || token === "undefined") {
-      console.log("❌ Token is empty or invalid");
-      return res.status(401).json({ 
+      return res.status(401).json({
         success: false,
-        message: "Invalid token" 
+        message: "Invalid token"
       });
     }
 
-    // Verify Firebase token
-    console.log("Verifying token...");
+    // 3️⃣ Verify Firebase ID Token
     let decodedToken;
     try {
       decodedToken = await admin.auth().verifyIdToken(token);
-      console.log("✅ Token verified successfully!");
-      console.log("User UID:", decodedToken.uid);
-      console.log("User Email:", decodedToken.email || "No email");
-    } catch (verifyError) {
-      console.error("❌ Token verification failed:", verifyError.message);
-      console.error("Error code:", verifyError.code);
-      
+    } catch (error) {
       return res.status(401).json({
         success: false,
-        message: "Invalid or expired token. Please login again."
+        message: "Token expired or invalid. Please login again."
       });
     }
 
-    // Attach user to request
+    // 4️⃣ 🔐 EMAIL VERIFICATION CHECK (VERY IMPORTANT)
+    if (!decodedToken.email_verified) {
+      return res.status(403).json({
+        success: false,
+        message: "Please verify your email before login"
+      });
+    }
+
+    // 5️⃣ Attach authenticated user to request
     req.user = {
       uid: decodedToken.uid,
-      email: decodedToken.email || "",
-      name: decodedToken.name || "",
+      email: decodedToken.email,
+      emailVerified: decodedToken.email_verified,
     };
-    
-    console.log("✅ User authenticated:", req.user.email);
-    console.log("🔐 Auth Middleware Complete\n");
-    
+
+    console.log("✅ Authenticated User:", req.user.email);
     next();
-    
+
   } catch (error) {
     console.error("❌ Auth middleware error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       message: "Authentication failed"
     });
