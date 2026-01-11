@@ -10,35 +10,65 @@ const calculateTotal = (items) => {
 
 // ➕ ADD TO CART
 exports.addToCart = async (req, res) => {
-  const { userId, email, product } = req.body;
+  try {
+    const { userId, product } = req.body;
 
-  let cart = await Cart.findOne({ userId });
-
-  if (!cart) {
-    cart = await Cart.create({
-      userId,
-      email,
-      items: [product],
-      totalPrice: product.price * product.quantity
-    });
-
-  } else {
-    const index = cart.items.findIndex(
-      (i) => i.productId.toString() === product.productId
-    );
-
-    if (index > -1) {
-      cart.items[index].quantity += product.quantity;
-    } else {
-      cart.items.push(product);
+    // 🔒 VALIDATION (THIS WAS MISSING)
+    if (!userId || !product || !product.productId) {
+      return res.status(400).json({
+        message: "Invalid cart data"
+      });
     }
 
-    cart.totalPrice = calculateTotal(cart.items);
-    await cart.save();
-  }
+    let cart = await Cart.findOne({ userId });
 
-  res.json(cart);
+    if (!cart) {
+      cart = await Cart.create({
+        userId,
+        items: [{
+          productId: product.productId,
+          name: product.name,
+          price: product.price,
+          quantity: product.quantity || 1,
+          image: product.image
+        }],
+        totalPrice: product.price * (product.quantity || 1)
+      });
+    } else {
+      const index = cart.items.findIndex(
+        i => i.productId.toString() === product.productId
+      );
+
+      if (index > -1) {
+        cart.items[index].quantity += product.quantity || 1;
+      } else {
+        cart.items.push({
+          productId: product.productId,
+          name: product.name,
+          price: product.price,
+          quantity: product.quantity || 1,
+          image: product.image
+        });
+      }
+
+      cart.totalPrice = cart.items.reduce(
+        (sum, i) => sum + i.price * i.quantity,
+        0
+      );
+
+      await cart.save();
+    }
+
+    res.json(cart);
+
+  } catch (error) {
+    console.error("ADD TO CART ERROR:", error);
+    res.status(500).json({
+      message: "Add to cart failed"
+    });
+  }
 };
+
 
 // 📥 GET CART
 exports.getCart = async (req, res) => {
