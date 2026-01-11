@@ -3,25 +3,24 @@ const Address = require("../models/Address");
 // ➕ ADD ADDRESS
 exports.addAddress = async (req, res) => {
   try {
-    const { userId, address, type, isDefault } = req.body;
+    const { address, type, isDefault, lat, lng } = req.body;
+    const uid = req.user.uid;
 
-    if (!userId || !address) {
-      return res.status(400).json({ message: "userId and address are required" });
+    if (!address) {
+      return res.status(400).json({ message: "Address required" });
     }
 
-    // If new address is default → remove old default
     if (isDefault) {
-      await Address.updateMany(
-        { userId },
-        { $set: { isDefault: false } }
-      );
+      await Address.updateMany({ uid }, { isDefault: false });
     }
 
     const newAddress = await Address.create({
-      userId,
+      uid,
       address,
       type,
-      isDefault
+      isDefault,
+      lat,
+      lng
     });
 
     res.status(201).json(newAddress);
@@ -30,12 +29,12 @@ exports.addAddress = async (req, res) => {
   }
 };
 
-// 📥 GET ALL USER ADDRESSES
+// 📥 GET ADDRESSES
 exports.getAddresses = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const uid = req.user.uid;
 
-    const addresses = await Address.find({ userId }).sort({
+    const addresses = await Address.find({ uid }).sort({
       isDefault: -1,
       createdAt: -1
     });
@@ -49,18 +48,16 @@ exports.getAddresses = async (req, res) => {
 // ✏ UPDATE ADDRESS
 exports.updateAddress = async (req, res) => {
   try {
-    const { address, type, isDefault, userId } = req.body;
+    const uid = req.user.uid;
+    const { address, type, isDefault, lat, lng } = req.body;
 
     if (isDefault) {
-      await Address.updateMany(
-        { userId },
-        { $set: { isDefault: false } }
-      );
+      await Address.updateMany({ uid }, { isDefault: false });
     }
 
-    const updated = await Address.findByIdAndUpdate(
-      req.params.id,
-      { address, type, isDefault },
+    const updated = await Address.findOneAndUpdate(
+      { _id: req.params.id, uid },
+      { address, type, isDefault, lat, lng },
       { new: true }
     );
 
@@ -77,7 +74,12 @@ exports.updateAddress = async (req, res) => {
 // ❌ DELETE ADDRESS
 exports.deleteAddress = async (req, res) => {
   try {
-    const deleted = await Address.findByIdAndDelete(req.params.id);
+    const uid = req.user.uid;
+
+    const deleted = await Address.findOneAndDelete({
+      _id: req.params.id,
+      uid
+    });
 
     if (!deleted) {
       return res.status(404).json({ message: "Address not found" });
