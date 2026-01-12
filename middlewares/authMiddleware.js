@@ -1,20 +1,24 @@
-const jwt = require("jsonwebtoken");
-const User = require("../models/User");
+const admin = require("../config/firebaseAdmin");
 
 const protect = async (req, res, next) => {
   try {
+    console.log("\n🔐 Auth Middleware Called");
+    console.log("URL:", req.originalUrl);
+
     // 1️⃣ Get Authorization header
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    if (!authHeader) {
       return res.status(401).json({
         success: false,
-        message: "Not authorized, token missing"
+        message: "Authorization token missing"
       });
     }
 
-    // 2️⃣ Extract token
-    const token = authHeader.split(" ")[1];
+    // 2️⃣ Extract token (Bearer or raw)
+    const token = authHeader.startsWith("Bearer ")
+      ? authHeader.split(" ")[1]
+      : authHeader;
 
     if (!token || token === "null" || token === "undefined") {
       return res.status(401).json({
@@ -23,37 +27,37 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // 3️⃣ Verify JWT token
-    let decoded;
+    // 3️⃣ Verify Firebase ID Token
+    let decodedToken;
     try {
-      decoded = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
+      decodedToken = await admin.auth().verifyIdToken(token);
+    } catch (error) {
       return res.status(401).json({
         success: false,
-        message: "Token expired or invalid"
+        message: "Token expired or invalid. Please login again."
       });
     }
 
-    // 4️⃣ Find user from DB
-    const user = await User.findById(decoded.id).select("-password");
-
-    if (!user) {
-      return res.status(401).json({
+    // 4️⃣ 🔐 EMAIL VERIFICATION CHECK (VERY IMPORTANT)
+    if (!decodedToken.email_verified) {
+      return res.status(403).json({
         success: false,
-        message: "User not found"
+        message: "Please verify your email before login"
       });
     }
 
-    // 5️⃣ Attach user info to request
+    // 5️⃣ Attach authenticated user to request
     req.user = {
-      id: user._id.toString()
+      uid: decodedToken.uid,
+      email: decodedToken.email,
+      emailVerified: decodedToken.email_verified,
     };
 
-    // ✅ Continue to next middleware / controller
+    console.log("✅ Authenticated User:", req.user.email);
     next();
 
   } catch (error) {
-    console.error("❌ Auth Middleware Error:", error);
+    console.error("❌ Auth middleware error:", error);
     return res.status(500).json({
       success: false,
       message: "Authentication failed"
