@@ -3,13 +3,10 @@ const mongoose = require("mongoose");
 const notificationSchema = new mongoose.Schema(
   {
     userId: {
-      type: String, // Firebase UID (IMPORTANT)
+      type: String, // user._id.toString()
       required: true
     },
-    message: {
-      type: String,
-      required: true
-    },
+    message: String,
     isRead: {
       type: Boolean,
       default: false

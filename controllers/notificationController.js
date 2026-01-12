@@ -1,58 +1,26 @@
 const Notification = require("../models/Notification");
 
-/**
- * CREATE NOTIFICATION
- * (Login success, Order success etc.)
- */
+// CREATE
 const createNotification = async (userId, message) => {
-  try {
-    await Notification.create({
-      userId,
-      message
-    });
-  } catch (error) {
-    console.error("❌ Notification create error:", error.message);
-  }
+  await Notification.create({ userId, message });
 };
 
-/**
- * GET USER NOTIFICATIONS
- */
+// GET
 const getNotifications = async (req, res) => {
-  try {
-    const notifications = await Notification.find({
-      userId: req.user.uid
-    }).sort({ createdAt: -1 });
+  const notifications = await Notification.find({
+    userId: req.user.id   // ✅ FIX HERE
+  }).sort({ createdAt: -1 });
 
-    res.status(200).json({
-      success: true,
-      data: notifications
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch notifications"
-    });
-  }
+  res.json({
+    success: true,
+    data: notifications
+  });
 };
 
-/**
- * DELETE NOTIFICATION
- */
+// DELETE
 const deleteNotification = async (req, res) => {
-  try {
-    await Notification.findByIdAndDelete(req.params.id);
-
-    res.status(200).json({
-      success: true,
-      message: "Notification deleted"
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Delete failed"
-    });
-  }
+  await Notification.findByIdAndDelete(req.params.id);
+  res.json({ success: true });
 };
 
 module.exports = {
