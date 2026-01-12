@@ -5,7 +5,7 @@ const protect = async (req, res, next) => {
     console.log("\n🔐 Auth Middleware Called");
     console.log("URL:", req.originalUrl);
 
-    // 1️⃣ Get Authorization header
+    // 1️⃣ Get Authorization Header
     const authHeader = req.headers.authorization;
 
     if (!authHeader) {
@@ -15,7 +15,7 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // 2️⃣ Extract token (Bearer or raw)
+    // 2️⃣ Extract Token (Bearer or Raw)
     const token = authHeader.startsWith("Bearer ")
       ? authHeader.split(" ")[1]
       : authHeader;
@@ -38,7 +38,7 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // 4️⃣ 🔐 EMAIL VERIFICATION CHECK (VERY IMPORTANT)
+    // 4️⃣ Email Verification Check (IMPORTANT)
     if (!decodedToken.email_verified) {
       return res.status(403).json({
         success: false,
@@ -46,18 +46,18 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // 5️⃣ Attach authenticated user to request
+    // 5️⃣ Attach User Info to Request
     req.user = {
       uid: decodedToken.uid,
       email: decodedToken.email,
-      emailVerified: decodedToken.email_verified,
+      emailVerified: decodedToken.email_verified
     };
 
     console.log("✅ Authenticated User:", req.user.email);
     next();
 
   } catch (error) {
-    console.error("❌ Auth middleware error:", error);
+    console.error("❌ Auth Middleware Error:", error);
     return res.status(500).json({
       success: false,
       message: "Authentication failed"
