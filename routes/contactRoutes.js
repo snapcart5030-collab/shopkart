@@ -1,21 +1,22 @@
 const express = require("express");
 const router = express.Router();
 
-const protect = require("../middlewares/authMiddleware"); // ✅ FIX
+const protect = require("../middlewares/authMiddleware");
+const { isAdmin } = require("../middlewares/adminMiddleware");
 
 const {
   sendMessage,
   getMessages,
-  deleteMessage
+  replyMessage,
+  getMyMessages
 } = require("../controllers/contactController");
 
-// ➕ Send contact message (LOGIN REQUIRED)
+/* ===== USER ===== */
 router.post("/", protect, sendMessage);
+router.get("/my", protect, getMyMessages);
 
-// 📥 Get all messages (Admin)
-router.get("/", getMessages);
-
-// ❌ Delete message (Admin)
-router.delete("/:id", deleteMessage);
+/* ===== ADMIN ===== */
+router.get("/", protect, isAdmin, getMessages);
+router.post("/reply/:id", protect, isAdmin, replyMessage);
 
 module.exports = router;
