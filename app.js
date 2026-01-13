@@ -42,6 +42,7 @@ app.use("/api/current-orders", require("./routes/currentOrderRoutes"));
 // ================== ADMIN ==================
 app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/admin/orders", require("./routes/adminOrderRoutes"));
+app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 // ================== ROOT ==================
 app.get("/", (req, res) => {
