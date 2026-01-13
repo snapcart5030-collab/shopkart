@@ -99,3 +99,25 @@ exports.deleteAllNotifications = async (req, res) => {
     });
   }
 };
+
+
+exports.createLoginNotification = async (req, res) => {
+  try {
+    await Notification.create({
+      userId: req.user.uid,
+      title: "Login Successful",
+      message: "You have logged in successfully"
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Login notification created"
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to create login notification"
+    });
+  }
+};
+

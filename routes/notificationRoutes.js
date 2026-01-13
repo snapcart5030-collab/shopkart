@@ -2,11 +2,15 @@ const express = require("express");
 const router = express.Router();
 
 const protect = require("../middlewares/authMiddleware");
+
+
+
 const {
   getNotifications,
   createNotification,
   deleteOneNotification,
-  deleteAllNotifications
+  deleteAllNotifications,
+  createLoginNotification
 } = require("../controllers/notificationController");
 
 // All routes protected
@@ -23,5 +27,5 @@ router.delete("/:id", deleteOneNotification);
 
 // Delete all
 router.delete("/", deleteAllNotifications);
-
+router.post("/login", createLoginNotification);
 module.exports = router;
