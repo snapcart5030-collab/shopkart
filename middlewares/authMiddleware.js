@@ -38,7 +38,7 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // 4️⃣ 🔐 EMAIL VERIFICATION CHECK (VERY IMPORTANT)
+    // 4️⃣ Email verification check
     if (!decodedToken.email_verified) {
       return res.status(403).json({
         success: false,
@@ -50,7 +50,7 @@ const protect = async (req, res, next) => {
     req.user = {
       uid: decodedToken.uid,
       email: decodedToken.email,
-      emailVerified: decodedToken.email_verified,
+      emailVerified: decodedToken.email_verified
     };
 
     console.log("✅ Authenticated User:", req.user.email);
