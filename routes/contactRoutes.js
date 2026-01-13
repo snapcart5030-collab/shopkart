@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 
 const protect = require("../middlewares/authMiddleware");
-const { isAdmin } = require("../middlewares/adminMiddleware");
 
 const {
   sendMessage,
@@ -11,12 +10,25 @@ const {
   getMyMessages
 } = require("../controllers/contactController");
 
-/* ===== USER ===== */
+/* =========================
+   USER ROUTES (LOGIN REQUIRED)
+========================= */
+
+// User send message
 router.post("/", protect, sendMessage);
+
+// User get own chat
 router.get("/my", protect, getMyMessages);
 
-/* ===== ADMIN ===== */
-router.get("/", protect, isAdmin, getMessages);
-router.post("/reply/:id", protect, isAdmin, replyMessage);
+
+/* =========================
+   ADMIN ROUTES (NO LOGIN)
+========================= */
+
+// Admin get all user chats
+router.get("/admin", getMessages);
+
+// Admin reply to user
+router.post("/admin/reply/:id", replyMessage);
 
 module.exports = router;
