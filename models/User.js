@@ -3,13 +3,13 @@ const mongoose = require("mongoose");
 const userSchema = new mongoose.Schema({
   uid: {
     type: String,
-    required: [true, "UID is required"],
+    required: true,
     unique: true,
     index: true,
   },
   email: {
     type: String,
-    required: [true, "Email is required"],
+    required: true,
     lowercase: true,
     trim: true,
   },
@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
   },
   mobile: {
     type: String,
+    default: "",
+  },
+  photo: {
+    type: String, // image URL
     default: "",
   },
   role: {
@@ -36,13 +40,9 @@ const userSchema = new mongoose.Schema({
     default: Date.now,
   },
 }, {
-  timestamps: true
+  timestamps: true,
 });
 
-// Indexes
-userSchema.index({ email: 1 }, { unique: false });
 userSchema.index({ mobile: 1 }, { sparse: true });
 
-const User = mongoose.model("User", userSchema);
-
-module.exports = User;
+module.exports = mongoose.model("User", userSchema);

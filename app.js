@@ -1,5 +1,8 @@
 const express = require("express");
 const cors = require("cors");
+const path = require("path");
+
+
 
 const app = express();
 
@@ -44,6 +47,7 @@ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/admin/orders", require("./routes/adminOrderRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // ================== ROOT ==================
 app.get("/", (req, res) => {
   res.send("✅ ShopKart API Running Successfully");
