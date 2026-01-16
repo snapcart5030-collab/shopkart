@@ -1,4 +1,5 @@
 const Cart = require("../models/Cart");
+const mongoose = require("mongoose");
 
 // 🔢 total calc
 const calculateTotal = (items) =>
@@ -9,8 +10,17 @@ exports.addToCart = async (req, res) => {
   try {
     const { userId, email, product } = req.body;
 
+    // 🔒 validation
     if (!userId || !email || !product) {
-      return res.status(400).json({ message: "Invalid request" });
+      return res.status(400).json({ message: "Invalid request data" });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId" });
+    }
+
+    if (!product.productId || !product.price || !product.kg) {
+      return res.status(400).json({ message: "Invalid product data" });
     }
 
     let cart = await Cart.findOne({ userId });
@@ -42,18 +52,23 @@ exports.addToCart = async (req, res) => {
     res.json(cart);
 
   } catch (error) {
-    res.status(500).json({
-      message: "Add to cart failed",
-      error: error.message
-    });
+    console.error("🔥 ADD TO CART ERROR:", error);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
 // 📥 GET CART
 exports.getCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.params.userId });
+    const { userId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId" });
+    }
+
+    const cart = await Cart.findOne({ userId });
     res.json(cart || { items: [], totalPrice: 0 });
+
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -119,7 +134,9 @@ exports.removeItem = async (req, res) => {
 // 🧹 CLEAR CART
 exports.clearCart = async (req, res) => {
   try {
-    const cart = await Cart.findOne({ userId: req.params.userId });
+    const { userId } = req.params;
+
+    const cart = await Cart.findOne({ userId });
 
     if (cart) {
       cart.items = [];
