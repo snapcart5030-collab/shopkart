@@ -12,6 +12,9 @@ const {
 // ➕ add
 router.post("/add", addToCart);
 
+// 📥 get
+router.get("/:userId", getCart);
+
 // 🔄 update qty
 router.put("/update", updateQuantity);
 
@@ -20,8 +23,5 @@ router.delete("/remove", removeItem);
 
 // 🧹 clear
 router.delete("/clear/:userId", clearCart);
-
-// 📥 get (⚠️ LAST)
-router.get("/:userId", getCart);
 
 module.exports = router;

@@ -2,8 +2,9 @@ const mongoose = require("mongoose");
 
 const cartSchema = new mongoose.Schema(
   {
+    // ✅ Firebase UID (STRING)
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       required: true,
       unique: true
     },
@@ -20,7 +21,10 @@ const cartSchema = new mongoose.Schema(
           required: true
         },
 
-        name: String,
+        name: {
+          type: String,
+          required: true
+        },
 
         price: {
           type: Number,
