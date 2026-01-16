@@ -12,7 +12,7 @@ const {
 router.post("/", createSuperCategory);
 
 // 📥 GET BY SUB CATEGORY
-router.get("/:subCategoryId", getSuperCategories);
+router.get("/subcategory/:subCategoryId", getSuperCategories);
 
 // ✏ UPDATE
 router.put("/:id", updateSuperCategory);

@@ -3,7 +3,9 @@ const Category = require("../models/Category");
 // ➕ CREATE CATEGORY
 exports.createCategory = async (req, res) => {
   try {
-    if (!req.body.images || req.body.images.length !== 3) {
+    const { images } = req.body;
+
+    if (!images || images.length !== 3) {
       return res.status(400).json({
         message: "Exactly 3 images are required"
       });
@@ -20,7 +22,7 @@ exports.createCategory = async (req, res) => {
 // 📥 GET ALL CATEGORIES
 exports.getCategories = async (req, res) => {
   try {
-    const categories = await Category.find();
+    const categories = await Category.find().sort({ createdAt: -1 });
     res.json(categories);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -30,7 +32,9 @@ exports.getCategories = async (req, res) => {
 // ✏ UPDATE CATEGORY
 exports.updateCategory = async (req, res) => {
   try {
-    if (req.body.images && req.body.images.length !== 3) {
+    const { images } = req.body;
+
+    if (images && images.length !== 3) {
       return res.status(400).json({
         message: "Exactly 3 images are required"
       });
@@ -39,8 +43,12 @@ exports.updateCategory = async (req, res) => {
     const updated = await Category.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { new: true, runValidators: true }
     );
+
+    if (!updated) {
+      return res.status(404).json({ message: "Category not found" });
+    }
 
     res.json(updated);
 
@@ -52,8 +60,14 @@ exports.updateCategory = async (req, res) => {
 // ❌ DELETE CATEGORY
 exports.deleteCategory = async (req, res) => {
   try {
-    await Category.findByIdAndDelete(req.params.id);
+    const deleted = await Category.findByIdAndDelete(req.params.id);
+
+    if (!deleted) {
+      return res.status(404).json({ message: "Category not found" });
+    }
+
     res.json({ success: true });
+
   } catch (error) {
     res.status(500).json({ error: error.message });
   }

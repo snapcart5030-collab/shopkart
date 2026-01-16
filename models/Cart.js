@@ -15,13 +15,29 @@ const cartSchema = new mongoose.Schema(
 
     items: [
       {
-        productId: mongoose.Schema.Types.ObjectId,
+        productId: {
+          type: mongoose.Schema.Types.ObjectId,
+          required: true
+        },
+
         name: String,
-        price: Number,
+
+        price: {
+          type: Number,
+          required: true
+        },
+
+        kg: {
+          type: String,
+          required: true
+        },
+
         quantity: {
           type: Number,
-          default: 1
+          default: 1,
+          min: 1
         },
+
         image: String
       }
     ],
@@ -33,6 +49,5 @@ const cartSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
 
 module.exports = mongoose.model("Cart", cartSchema);

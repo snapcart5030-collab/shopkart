@@ -2,14 +2,19 @@ const mongoose = require("mongoose");
 
 const categorySchema = new mongoose.Schema(
   {
-    name: { type: String, required: true },
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
 
     images: {
-      type: [String], 
-      validate: [arrayLimit, "Only 3 images allowed"]
+      type: [String],
+      validate: {
+        validator: (val) => val.length === 3,
+        message: "Exactly 3 images are required"
+      }
     },
-    
-
 
     icon: String,
     bgcolor: String,
@@ -17,9 +22,5 @@ const categorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
-
-function arrayLimit(val) {
-  return val.length === 3;
-}
 
 module.exports = mongoose.model("Category", categorySchema);

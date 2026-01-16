@@ -11,8 +11,8 @@ const {
 // ➕ CREATE
 router.post("/", createSubCategory);
 
-// 📥 GET BY CATEGORY ID
-router.get("/:categoryId", getSubCategories);
+// 📥 GET BY CATEGORY
+router.get("/category/:categoryId", getSubCategories);
 
 // ✏ UPDATE
 router.put("/:id", updateSubCategory);

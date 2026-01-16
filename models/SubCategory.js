@@ -14,20 +14,15 @@ const subCategorySchema = new mongoose.Schema(
       trim: true
     },
 
-    description: {
-      type: String
-    },
+    description: String,
 
-    // ✅ exactly 3 images (front, back, left/right)
     images: {
       type: [String],
+      required: true,
       validate: {
-        validator: function (v) {
-          return v.length === 3;
-        },
+        validator: (v) => v.length === 3,
         message: "Exactly 3 images are required"
-      },
-      required: true
+      }
     }
   },
   { timestamps: true }

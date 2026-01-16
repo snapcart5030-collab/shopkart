@@ -1,6 +1,7 @@
 const SuperCategory = require("../models/SuperCategory");
+const mongoose = require("mongoose");
 
-// ➕ CREATE SUPER CATEGORY (PRODUCT)
+// ➕ CREATE SUPER CATEGORY (PRODUCT / VARIANT)
 exports.createSuperCategory = async (req, res) => {
   try {
     const {
@@ -14,16 +15,26 @@ exports.createSuperCategory = async (req, res) => {
       stock
     } = req.body;
 
-    if (!name || !subCategoryId || !price) {
+    if (!name || !subCategoryId || !price || !kg) {
       return res.status(400).json({
-        message: "Name, subCategoryId and price are required"
+        message: "Name, subCategoryId, price and kg are required"
       });
     }
 
-    // ✅ image validation
+    if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
+      return res.status(400).json({ message: "Invalid subCategoryId" });
+    }
+
     if (!images || !Array.isArray(images) || images.length !== 3) {
       return res.status(400).json({
         message: "Exactly 3 images are required"
+      });
+    }
+
+    const exists = await SuperCategory.findOne({ subCategoryId, kg });
+    if (exists) {
+      return res.status(409).json({
+        message: "This kg variant already exists"
       });
     }
 
@@ -51,9 +62,15 @@ exports.createSuperCategory = async (req, res) => {
 // 📥 GET BY SUB CATEGORY
 exports.getSuperCategories = async (req, res) => {
   try {
-    const products = await SuperCategory.find({
-      subCategoryId: req.params.subCategoryId
-    });
+    const { subCategoryId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
+      return res.status(400).json({ message: "Invalid subCategoryId" });
+    }
+
+    const products = await SuperCategory
+      .find({ subCategoryId })
+      .sort({ price: 1 });
 
     res.json(products);
 
@@ -65,7 +82,7 @@ exports.getSuperCategories = async (req, res) => {
   }
 };
 
-// ✏ UPDATE SUPER CATEGORY
+// ✏ UPDATE
 exports.updateSuperCategory = async (req, res) => {
   try {
     if (req.body.images && req.body.images.length !== 3) {
@@ -77,7 +94,7 @@ exports.updateSuperCategory = async (req, res) => {
     const updated = await SuperCategory.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updated) {
@@ -96,7 +113,7 @@ exports.updateSuperCategory = async (req, res) => {
   }
 };
 
-// ❌ DELETE SUPER CATEGORY
+// ❌ DELETE
 exports.deleteSuperCategory = async (req, res) => {
   try {
     const deleted = await SuperCategory.findByIdAndDelete(req.params.id);

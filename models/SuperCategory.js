@@ -14,35 +14,28 @@ const superCategorySchema = new mongoose.Schema(
       trim: true
     },
 
-    description: {
-      type: String
-    },
+    description: String,
 
     price: {
       type: Number,
       required: true
     },
 
-    // ✅ EXACTLY 3 IMAGES
     images: {
       type: [String],
       required: true,
       validate: {
-        validator: function (v) {
-          return v.length === 3;
-        },
-        message: "Exactly 3 images are required (front, back, side)"
+        validator: (v) => v.length === 3,
+        message: "Exactly 3 images are required"
       }
     },
 
     kg: {
-      type: String, // "500g", "1kg", etc
-      default: "500g"
+      type: String, // 500g, 1kg, 2kg
+      required: true
     },
 
-    color: {
-      type: String
-    },
+    color: String,
 
     stock: {
       type: Number,
@@ -50,6 +43,12 @@ const superCategorySchema = new mongoose.Schema(
     }
   },
   { timestamps: true }
+);
+
+// 🔒 Prevent duplicate variant (same subCategory + kg)
+superCategorySchema.index(
+  { subCategoryId: 1, kg: 1 },
+  { unique: true }
 );
 
 module.exports = mongoose.model("SuperCategory", superCategorySchema);

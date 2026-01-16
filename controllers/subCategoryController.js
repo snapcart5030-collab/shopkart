@@ -1,4 +1,5 @@
 const SubCategory = require("../models/SubCategory");
+const mongoose = require("mongoose");
 
 // ➕ CREATE SUB CATEGORY
 exports.createSubCategory = async (req, res) => {
@@ -11,18 +12,22 @@ exports.createSubCategory = async (req, res) => {
       });
     }
 
-    // ✅ images validation
-    if (!images || !Array.isArray(images) || images.length !== 3) {
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
       return res.status(400).json({
-        message: "Exactly 3 images are required (front, back, left/right)"
+        message: "Invalid categoryId"
       });
     }
 
-    // prevent duplicate subcategory in same category
+    if (!images || !Array.isArray(images) || images.length !== 3) {
+      return res.status(400).json({
+        message: "Exactly 3 images are required"
+      });
+    }
+
     const exists = await SubCategory.findOne({ name, categoryId });
     if (exists) {
       return res.status(409).json({
-        message: "SubCategory already exists"
+        message: "SubCategory already exists in this category"
       });
     }
 
@@ -46,9 +51,15 @@ exports.createSubCategory = async (req, res) => {
 // 📥 GET SUB CATEGORIES BY CATEGORY ID
 exports.getSubCategories = async (req, res) => {
   try {
-    const subCategories = await SubCategory.find({
-      categoryId: req.params.categoryId
-    });
+    const { categoryId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
+      return res.status(400).json({ message: "Invalid categoryId" });
+    }
+
+    const subCategories = await SubCategory
+      .find({ categoryId })
+      .sort({ createdAt: -1 });
 
     res.json(subCategories);
 
@@ -72,7 +83,7 @@ exports.updateSubCategory = async (req, res) => {
     const updated = await SubCategory.findByIdAndUpdate(
       req.params.id,
       req.body,
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     if (!updated) {
