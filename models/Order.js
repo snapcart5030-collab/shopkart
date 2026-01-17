@@ -3,13 +3,13 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema(
   {
     userId: {
-      type: String,   // firebase uid
+      type: String, // firebase uid
       required: true
     },
 
     items: [
       {
-        productId: String,
+        productId: { type: String, required: true },
         name: String,
         price: Number,
         kg: String,
