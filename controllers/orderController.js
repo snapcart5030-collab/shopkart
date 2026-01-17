@@ -1,13 +1,15 @@
 const Order = require("../models/Order");
 
+/* =========================
+   CREATE ORDER
+========================= */
 exports.createOrder = async (req, res) => {
   try {
     const { userId, items, totalAmount, paymentMethod, address } = req.body;
 
     console.log("ORDER REQUEST BODY 🔥:", req.body);
 
-    /* ================= BASIC VALIDATION ================= */
-
+    /* ===== BASIC VALIDATION ===== */
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -30,32 +32,25 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    /* ================= ITEM VALIDATION ================= */
-
-    for (const item of items) {
+    /* ===== SANITIZE ITEMS ===== */
+    const cleanItems = items.map((item) => {
       if (!item.productId) {
-        return res.status(400).json({
-          success: false,
-          message: "productId missing in order items"
-        });
+        throw new Error("productId missing in order items");
       }
-    }
 
-    /* ================= SANITIZE ITEMS ================= */
+      return {
+        productId: String(item.productId),
+        name: item.name || "",
+        price: Number(item.price) || 0,
+        kg: item.kg || "",
+        quantity: Number(item.quantity) || 1,
+        image: item.image || ""
+      };
+    });
 
-    const cleanItems = items.map((item) => ({
-      productId: String(item.productId),
-      name: item.name || "",
-      price: Number(item.price) || 0,
-      kg: item.kg || "",
-      quantity: Number(item.quantity) || 1,
-      image: item.image || ""
-    }));
-
-    /* ================= CREATE ORDER ================= */
-
+    /* ===== CREATE ORDER ===== */
     const order = await Order.create({
-      userId: String(userId), // Mongo user _id as string
+      userId: String(userId), // firebase uid stored as string
       items: cleanItems,
       totalAmount: finalTotal,
       paymentMethod: paymentMethod || "COD",
@@ -79,6 +74,35 @@ exports.createOrder = async (req, res) => {
       success: false,
       message: "Order creation failed",
       error: error.message
+    });
+  }
+};
+
+/* =========================
+   GET ORDERS BY USER
+========================= */
+exports.getOrdersByUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId is required"
+      });
+    }
+
+    const orders = await Order
+      .find({ userId: String(userId) })
+      .sort({ createdAt: -1 });
+
+    return res.json(orders);
+
+  } catch (error) {
+    console.error("GET ORDERS ERROR 🔥", error);
+    return res.status(500).json({
+      success: false,
+      message: "Failed to fetch orders"
     });
   }
 };
