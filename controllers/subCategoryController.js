@@ -1,14 +1,25 @@
 const SubCategory = require("../models/SubCategory");
 const mongoose = require("mongoose");
 
-// ➕ CREATE SUB CATEGORY
+/* =========================
+   ➕ CREATE SUB CATEGORY
+========================= */
 exports.createSubCategory = async (req, res) => {
   try {
-    const { name, categoryId, images, description } = req.body;
+    const {
+      name,
+      categoryId,
+      price,
+      kg,
+      color,
+      stock,
+      images,
+      description
+    } = req.body;
 
-    if (!name || !categoryId) {
+    if (!name || !categoryId || !price || !kg) {
       return res.status(400).json({
-        message: "Name and categoryId are required"
+        message: "Name, categoryId, price and kg are required"
       });
     }
 
@@ -34,6 +45,10 @@ exports.createSubCategory = async (req, res) => {
     const subCategory = await SubCategory.create({
       name,
       categoryId,
+      price,
+      kg,
+      color,
+      stock,
       images,
       description
     });
@@ -48,13 +63,17 @@ exports.createSubCategory = async (req, res) => {
   }
 };
 
-// 📥 GET SUB CATEGORIES BY CATEGORY ID
+/* =========================
+   📥 GET SUB CATEGORIES BY CATEGORY
+========================= */
 exports.getSubCategories = async (req, res) => {
   try {
     const { categoryId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return res.status(400).json({ message: "Invalid categoryId" });
+      return res.status(400).json({
+        message: "Invalid categoryId"
+      });
     }
 
     const subCategories = await SubCategory
@@ -71,7 +90,9 @@ exports.getSubCategories = async (req, res) => {
   }
 };
 
-// ✏ UPDATE SUB CATEGORY
+/* =========================
+   ✏ UPDATE SUB CATEGORY
+========================= */
 exports.updateSubCategory = async (req, res) => {
   try {
     if (req.body.images && req.body.images.length !== 3) {
@@ -102,7 +123,9 @@ exports.updateSubCategory = async (req, res) => {
   }
 };
 
-// ❌ DELETE SUB CATEGORY
+/* =========================
+   ❌ DELETE SUB CATEGORY
+========================= */
 exports.deleteSubCategory = async (req, res) => {
   try {
     const deleted = await SubCategory.findByIdAndDelete(req.params.id);

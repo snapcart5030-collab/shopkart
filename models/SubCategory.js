@@ -14,7 +14,28 @@ const subCategorySchema = new mongoose.Schema(
       trim: true
     },
 
-    description: String,
+    price: {
+      type: Number,
+      required: true
+    },
+
+    kg: {
+      type: String, // "1kg", "500g"
+      required: true
+    },
+
+    color: {
+      type: String
+    },
+
+    stock: {
+      type: Number,
+      default: 0
+    },
+
+    description: {
+      type: String
+    },
 
     images: {
       type: [String],
