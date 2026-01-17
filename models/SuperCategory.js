@@ -8,44 +8,20 @@ const superCategorySchema = new mongoose.Schema(
       required: true
     },
 
-    name: {
-      type: String,
-      required: true,
-      trim: true
-    },
-
-    description: String,
-
-    price: {
-      type: Number,
-      required: true
-    },
+    name: String,
+    price: { type: Number, required: true },
+    kg: { type: String, required: true },
+    stock: { type: Number, default: 0 },
+    color: String,
 
     images: {
       type: [String],
-      required: true,
-      validate: {
-        validator: (v) => v.length === 3,
-        message: "Exactly 3 images are required"
-      }
-    },
-
-    kg: {
-      type: String, // 500g, 1kg, 2kg
-      required: true
-    },
-
-    color: String,
-
-    stock: {
-      type: Number,
-      default: 0
+      validate: (v) => v.length === 3
     }
   },
   { timestamps: true }
 );
 
-// 🔒 Prevent duplicate variant (same subCategory + kg)
 superCategorySchema.index(
   { subCategoryId: 1, kg: 1 },
   { unique: true }
