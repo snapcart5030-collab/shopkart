@@ -3,13 +3,16 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema(
   {
     userId: {
-      type: String, // firebase uid
+      type: String,   // Mongo user _id stored as string
       required: true
     },
 
     items: [
       {
-        productId: { type: String, required: true },
+        productId: {
+          type: String,
+          required: true
+        },
         name: String,
         price: Number,
         kg: String,
@@ -29,8 +32,14 @@ const orderSchema = new mongoose.Schema(
     },
 
     address: {
-      address: String,
-      type: String
+      address: {
+        type: String,
+        default: ""
+      },
+      type: {
+        type: String,
+        default: "HOME"
+      }
     },
 
     status: {

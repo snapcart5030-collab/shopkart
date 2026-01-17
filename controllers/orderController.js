@@ -6,40 +6,58 @@ exports.createOrder = async (req, res) => {
 
     console.log("ORDER REQUEST BODY 🔥:", req.body);
 
-    // ✅ BASIC VALIDATION
+    /* ================= BASIC VALIDATION ================= */
+
     if (!userId) {
-      return res.status(400).json({ message: "userId is required" });
+      return res.status(400).json({
+        success: false,
+        message: "userId is required"
+      });
     }
 
     if (!Array.isArray(items) || items.length === 0) {
-      return res.status(400).json({ message: "Order items are required" });
+      return res.status(400).json({
+        success: false,
+        message: "Order items are required"
+      });
     }
 
-    if (typeof totalAmount !== "number" || totalAmount <= 0) {
-      return res.status(400).json({ message: "Invalid total amount" });
+    const finalTotal = Number(totalAmount);
+    if (isNaN(finalTotal) || finalTotal <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid total amount"
+      });
     }
 
-    // ✅ SANITIZE ITEMS (MOST IMPORTANT FIX)
-    const cleanItems = items.map((item) => {
+    /* ================= ITEM VALIDATION ================= */
+
+    for (const item of items) {
       if (!item.productId) {
-        throw new Error("productId missing in item");
+        return res.status(400).json({
+          success: false,
+          message: "productId missing in order items"
+        });
       }
+    }
 
-      return {
-        productId: item.productId,
-        name: item.name || "",
-        price: Number(item.price) || 0,
-        kg: item.kg || "",
-        quantity: Number(item.quantity) || 1,
-        image: item.image || ""
-      };
-    });
+    /* ================= SANITIZE ITEMS ================= */
 
-    // ✅ CREATE ORDER
+    const cleanItems = items.map((item) => ({
+      productId: String(item.productId),
+      name: item.name || "",
+      price: Number(item.price) || 0,
+      kg: item.kg || "",
+      quantity: Number(item.quantity) || 1,
+      image: item.image || ""
+    }));
+
+    /* ================= CREATE ORDER ================= */
+
     const order = await Order.create({
-      userId, // Mongo user _id (string)
+      userId: String(userId), // Mongo user _id as string
       items: cleanItems,
-      totalAmount,
+      totalAmount: finalTotal,
       paymentMethod: paymentMethod || "COD",
       address: {
         address: address?.address || "",
