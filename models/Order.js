@@ -3,23 +3,20 @@ const mongoose = require("mongoose");
 const orderSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,   // firebase uid
       required: true
     },
 
     items: [
       {
-        productId: mongoose.Schema.Types.ObjectId,
+        productId: String,
         name: String,
         price: Number,
-        quantity: Number
+        kg: String,
+        quantity: Number,
+        image: String
       }
     ],
-
-    address: {
-      type: String,
-      required: true
-    },
 
     totalAmount: {
       type: Number,
@@ -28,14 +25,17 @@ const orderSchema = new mongoose.Schema(
 
     paymentMethod: {
       type: String,
-      enum: ["COD", "ONLINE"],
       default: "COD"
     },
 
-    orderStatus: {
+    address: {
+      address: String,
+      type: String
+    },
+
+    status: {
       type: String,
-      enum: ["PLACED", "CONFIRMED", "SHIPPED", "DELIVERED", "CANCELLED"],
-      default: "PLACED"
+      default: "Pending"
     }
   },
   { timestamps: true }
