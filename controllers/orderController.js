@@ -4,40 +4,61 @@ exports.createOrder = async (req, res) => {
   try {
     const { userId, items, totalAmount, paymentMethod, address } = req.body;
 
-    console.log("ORDER REQUEST BODY:", req.body); // 🔥 MUST
+    console.log("ORDER REQUEST BODY 🔥:", req.body);
 
-    if (!userId || !items || items.length === 0 || !totalAmount) {
-      return res.status(400).json({
-        message: "Invalid order data"
-      });
+    // ✅ BASIC VALIDATION
+    if (!userId) {
+      return res.status(400).json({ message: "userId is required" });
     }
 
-    // 🔒 sanitize items (VERY IMPORTANT)
-    const cleanItems = items.map((item) => ({
-      productId: item.productId,
-      name: item.name,
-      price: Number(item.price),
-      kg: item.kg,
-      quantity: Number(item.quantity),
-      image: item.image
-    }));
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ message: "Order items are required" });
+    }
 
+    if (typeof totalAmount !== "number" || totalAmount <= 0) {
+      return res.status(400).json({ message: "Invalid total amount" });
+    }
+
+    // ✅ SANITIZE ITEMS (MOST IMPORTANT FIX)
+    const cleanItems = items.map((item) => {
+      if (!item.productId) {
+        throw new Error("productId missing in item");
+      }
+
+      return {
+        productId: item.productId,
+        name: item.name || "",
+        price: Number(item.price) || 0,
+        kg: item.kg || "",
+        quantity: Number(item.quantity) || 1,
+        image: item.image || ""
+      };
+    });
+
+    // ✅ CREATE ORDER
     const order = await Order.create({
-      userId,
+      userId, // Mongo user _id (string)
       items: cleanItems,
-      totalAmount: Number(totalAmount),
+      totalAmount,
       paymentMethod: paymentMethod || "COD",
       address: {
         address: address?.address || "",
         type: address?.type || "HOME"
-      }
+      },
+      status: "Pending"
     });
 
-    res.status(201).json(order);
+    return res.status(201).json({
+      success: true,
+      message: "Order placed successfully",
+      order
+    });
 
   } catch (error) {
     console.error("ORDER CREATE ERROR 🔥🔥🔥", error);
-    res.status(500).json({
+
+    return res.status(500).json({
+      success: false,
       message: "Order creation failed",
       error: error.message
     });
