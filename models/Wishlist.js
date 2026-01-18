@@ -3,21 +3,16 @@ const mongoose = require("mongoose");
 const wishlistSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      unique: true
+      type: String,
+      required: true
     },
-
     items: [
       {
-        productId: mongoose.Schema.Types.ObjectId,
+        productId: String,
         name: String,
         price: Number,
-        image: String,
-        liked: {
-          type: Boolean,
-          default: true
-        }
+        kg: String,
+        image: String
       }
     ]
   },

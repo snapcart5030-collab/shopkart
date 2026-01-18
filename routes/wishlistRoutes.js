@@ -3,20 +3,11 @@ const router = express.Router();
 const {
   addToWishlist,
   getWishlist,
-  removeFromWishlist,
-  clearWishlist
+  removeFromWishlist
 } = require("../controllers/wishlistController");
 
-// ❤️ Add / like
-router.post("/add", addToWishlist);
-
-// 📥 Get wishlist
-router.get("/:userId", getWishlist);
-
-// 💔 Remove / unlike
-router.delete("/remove", removeFromWishlist);
-
-// 🧹 Clear wishlist
-router.delete("/clear/:userId", clearWishlist);
+router.post("/wishlist/add", addToWishlist);
+router.get("/wishlist/:userId", getWishlist);
+router.delete("/wishlist/remove", removeFromWishlist);
 
 module.exports = router;
