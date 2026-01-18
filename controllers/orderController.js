@@ -7,9 +7,6 @@ exports.createOrder = async (req, res) => {
   try {
     const { userId, items, totalAmount, paymentMethod, address } = req.body;
 
-    console.log("ORDER REQUEST BODY 🔥:", req.body);
-
-    /* ===== BASIC VALIDATION ===== */
     if (!userId) {
       return res.status(400).json({
         success: false,
@@ -32,25 +29,17 @@ exports.createOrder = async (req, res) => {
       });
     }
 
-    /* ===== SANITIZE ITEMS ===== */
-    const cleanItems = items.map((item) => {
-      if (!item.productId) {
-        throw new Error("productId missing in order items");
-      }
+    const cleanItems = items.map((item) => ({
+      productId: String(item.productId),
+      name: item.name || "",
+      price: Number(item.price) || 0,
+      kg: item.kg || "",
+      quantity: Number(item.quantity) || 1,
+      image: item.image || ""
+    }));
 
-      return {
-        productId: String(item.productId),
-        name: item.name || "",
-        price: Number(item.price) || 0,
-        kg: item.kg || "",
-        quantity: Number(item.quantity) || 1,
-        image: item.image || ""
-      };
-    });
-
-    /* ===== CREATE ORDER ===== */
     const order = await Order.create({
-      userId: String(userId), // firebase uid stored as string
+      userId: String(userId),
       items: cleanItems,
       totalAmount: finalTotal,
       paymentMethod: paymentMethod || "COD",
@@ -68,8 +57,6 @@ exports.createOrder = async (req, res) => {
     });
 
   } catch (error) {
-    console.error("ORDER CREATE ERROR 🔥🔥🔥", error);
-
     return res.status(500).json({
       success: false,
       message: "Order creation failed",
@@ -85,13 +72,6 @@ exports.getOrdersByUser = async (req, res) => {
   try {
     const { userId } = req.params;
 
-    if (!userId) {
-      return res.status(400).json({
-        success: false,
-        message: "userId is required"
-      });
-    }
-
     const orders = await Order
       .find({ userId: String(userId) })
       .sort({ createdAt: -1 });
@@ -99,10 +79,68 @@ exports.getOrdersByUser = async (req, res) => {
     return res.json(orders);
 
   } catch (error) {
-    console.error("GET ORDERS ERROR 🔥", error);
     return res.status(500).json({
       success: false,
       message: "Failed to fetch orders"
+    });
+  }
+};
+
+/* =========================
+   CANCEL ORDER (NEW)
+========================= */
+exports.cancelOrder = async (req, res) => {
+  try {
+    const { orderId } = req.params;
+    const { userId } = req.body;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId required"
+      });
+    }
+
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({
+        success: false,
+        message: "Order not found"
+      });
+    }
+
+    if (order.userId !== userId) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized"
+      });
+    }
+
+    if (
+      order.status === "Delivered" ||
+      order.status === "Cancelled"
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "Order cannot be cancelled"
+      });
+    }
+
+    order.status = "Cancelled";
+    await order.save();
+
+    return res.json({
+      success: true,
+      message: "Order cancelled successfully",
+      order
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: "Cancel order failed",
+      error: error.message
     });
   }
 };
