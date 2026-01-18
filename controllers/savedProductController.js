@@ -2,60 +2,75 @@ const SavedProduct = require("../models/SavedProduct");
 
 // 🔖 SAVE PRODUCT
 exports.saveProduct = async (req, res) => {
-  const { userId, product } = req.body;
+  try {
+    const { userId, product } = req.body;
 
-  let saved = await SavedProduct.findOne({ userId });
+    let saved = await SavedProduct.findOne({ userId });
 
-  if (!saved) {
-    saved = await SavedProduct.create({
-      userId,
-      products: [product]
-    });
-  } else {
-    const exists = saved.products.find(
-      (p) => p.productId.toString() === product.productId
-    );
+    if (!saved) {
+      saved = new SavedProduct({
+        userId,
+        products: [product]
+      });
+    } else {
+      const exists = saved.products.find(
+        (p) => p.productId === product.productId
+      );
 
-    if (!exists) {
-      saved.products.push(product);
+      if (!exists) {
+        saved.products.push(product);
+      }
     }
-  }
 
-  await saved.save();
-  res.json(saved);
+    await saved.save();
+    res.json(saved.products);
+
+  } catch (err) {
+    console.error("SAVE PRODUCT ERROR", err);
+    res.status(500).json({ message: "Failed to save product" });
+  }
 };
 
 // 📥 GET SAVED PRODUCTS
 exports.getSavedProducts = async (req, res) => {
-  const saved = await SavedProduct.findOne({ userId: req.params.userId });
-  res.json(saved || { products: [] });
+  try {
+    const saved = await SavedProduct.findOne({ userId: req.params.userId });
+    res.json(saved?.products || []);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load saved products" });
+  }
 };
 
 // ❌ UNSAVE PRODUCT
 exports.unsaveProduct = async (req, res) => {
-  const { userId, productId } = req.body;
+  try {
+    const { userId, productId } = req.body;
 
-  const saved = await SavedProduct.findOne({ userId });
-  if (!saved) {
-    return res.status(404).json({ message: "No saved products" });
+    const saved = await SavedProduct.findOne({ userId });
+    if (!saved) return res.json([]);
+
+    saved.products = saved.products.filter(
+      (p) => p.productId !== productId
+    );
+
+    await saved.save();
+    res.json(saved.products);
+
+  } catch (err) {
+    res.status(500).json({ message: "Failed to unsave product" });
   }
-
-  saved.products = saved.products.filter(
-    (p) => p.productId.toString() !== productId
-  );
-
-  await saved.save();
-  res.json(saved);
 };
 
 // 🧹 CLEAR ALL SAVED
 exports.clearSaved = async (req, res) => {
-  const saved = await SavedProduct.findOne({ userId: req.params.userId });
-
-  if (saved) {
-    saved.products = [];
-    await saved.save();
+  try {
+    const saved = await SavedProduct.findOne({ userId: req.params.userId });
+    if (saved) {
+      saved.products = [];
+      await saved.save();
+    }
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ message: "Failed to clear saved products" });
   }
-
-  res.json({ success: true });
 };

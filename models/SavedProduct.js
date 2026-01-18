@@ -3,14 +3,14 @@ const mongoose = require("mongoose");
 const savedProductSchema = new mongoose.Schema(
   {
     userId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,          // ✅ FIX: String (Firebase UID)
       required: true,
       unique: true
     },
 
     products: [
       {
-        productId: mongoose.Schema.Types.ObjectId,
+        productId: String,   // ✅ String (same as wishlist/cart)
         name: String,
         price: Number,
         image: String,
