@@ -8,20 +8,42 @@ const subCategorySchema = new mongoose.Schema(
       required: true
     },
 
-    name: { type: String, required: true },
+    name: {
+      type: String,
+      required: true,
+      trim: true
+    },
+
+    slug: {
+      type: String,
+      lowercase: true
+    },
+
     description: String,
 
     images: {
       type: [String],
-      validate: (v) => v.length === 3
+      validate: {
+        validator: (v) => v.length === 3,
+        message: "Exactly 3 images are required"
+      }
     },
 
     color: String,
-    stock: { type: Number, default: 0 },
 
-    isHot: Boolean,
-    isTrending: Boolean,
-    isTodaySpecial: Boolean
+    isHot: { type: Boolean, default: false },
+    isTrending: { type: Boolean, default: false },
+    isTodaySpecial: { type: Boolean, default: false },
+
+    isActive: {
+      type: Boolean,
+      default: true
+    },
+
+    order: {
+      type: Number,
+      default: 0
+    }
   },
   { timestamps: true }
 );
