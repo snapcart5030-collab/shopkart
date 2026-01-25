@@ -42,3 +42,25 @@ exports.getSuperCategories = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+exports.getSuperCategoryById = async (req, res) => {
+  try {
+    const { productId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      return res.status(400).json({ message: "Invalid productId" });
+    }
+
+    const product = await SuperCategory.findOne({
+      _id: productId,
+      isActive: true
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: "Product not found" });
+    }
+
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
