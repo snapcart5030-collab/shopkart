@@ -5,8 +5,8 @@ const categorySchema = new mongoose.Schema(
     name: {
       type: String,
       required: true,
-      trim: true,
-      unique: true
+      unique: true,
+      trim: true
     },
 
     slug: {
@@ -18,8 +18,8 @@ const categorySchema = new mongoose.Schema(
     images: {
       type: [String],
       validate: {
-        validator: (v) => v.length === 3,
-        message: "Exactly 3 images are required"
+        validator: (v) => v.length === 4,
+        message: "Exactly 4 images are required"
       }
     },
 

@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const subCategorySchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
@@ -19,8 +19,28 @@ const subCategorySchema = new mongoose.Schema(
       required: true
     },
 
-    image: String,
+    subCategory: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "SubCategory",
+      required: true
+    },
+
+    images: {
+      type: [String],
+      default: []
+    },
+
+    price: {
+      type: Number,
+      required: true
+    },
+
     description: String,
+
+    stock: {
+      type: Number,
+      default: 0
+    },
 
     isActive: {
       type: Boolean,
@@ -30,4 +50,4 @@ const subCategorySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("SubCategory", subCategorySchema);
+module.exports = mongoose.model("Product", productSchema);

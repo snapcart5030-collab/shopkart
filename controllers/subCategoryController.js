@@ -1,42 +1,27 @@
 const SubCategory = require("../models/SubCategory");
-const mongoose = require("mongoose");
 const slugify = require("slugify");
 
+/* CREATE SUB CATEGORY (Apple, Banana) */
 exports.createSubCategory = async (req, res) => {
   try {
-    const { categoryId, name, images } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return res.status(400).json({ message: "Invalid categoryId" });
-    }
-
-    if (!images || images.length !== 3) {
-      return res.status(400).json({ message: "3 images required" });
-    }
-
-    const sub = await SubCategory.create({
+    const subCategory = await SubCategory.create({
       ...req.body,
-      slug: slugify(name)
+      slug: slugify(req.body.name)
     });
 
-    res.status(201).json(sub);
+    res.status(201).json(subCategory);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
+/* GET SUB CATEGORIES BY CATEGORY (Fruits → Apple, Banana) */
 exports.getSubCategories = async (req, res) => {
   try {
-    const { categoryId } = req.params;
-
-    if (!mongoose.Types.ObjectId.isValid(categoryId)) {
-      return res.status(400).json({ message: "Invalid categoryId" });
-    }
-
     const data = await SubCategory.find({
-      categoryId,
+      category: req.params.categoryId,
       isActive: true
-    }).sort({ order: 1, createdAt: -1 });
+    }).sort({ createdAt: -1 });
 
     res.json(data);
   } catch (err) {

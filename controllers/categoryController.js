@@ -5,8 +5,8 @@ exports.createCategory = async (req, res) => {
   try {
     const { images, name } = req.body;
 
-    if (!images || images.length !== 3) {
-      return res.status(400).json({ message: "3 images required" });
+    if (!images || images.length !== 4) {
+      return res.status(400).json({ message: "4 images required" });
     }
 
     const category = await Category.create({

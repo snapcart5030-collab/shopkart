@@ -1,64 +1,47 @@
 const SuperCategory = require("../models/SuperCategory");
 const mongoose = require("mongoose");
 
-/* ================= CREATE ================= */
 exports.createSuperCategory = async (req, res) => {
   try {
-    const { subCategoryId, images, isDefault } = req.body;
+    const { subCategoryId, kg, images, isDefault } = req.body;
 
-    // Validate subCategoryId
     if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
       return res.status(400).json({ message: "Invalid subCategoryId" });
     }
 
-    // Validate images
     if (!images || images.length !== 3) {
-      return res.status(400).json({ message: "Exactly 3 images required" });
+      return res.status(400).json({ message: "3 images required" });
     }
 
-    const subCatObjectId = new mongoose.Types.ObjectId(subCategoryId);
-
-    // Ensure only ONE default variant per subcategory
-    if (isDefault === true) {
+    if (isDefault) {
+      // ensure only ONE default variant (500gm)
       await SuperCategory.updateMany(
-        { subCategoryId: subCatObjectId },
-        { $set: { isDefault: false } }
+        { subCategoryId },
+        { isDefault: false }
       );
     }
 
-    // Create product with ObjectId
-    const product = await SuperCategory.create({
-      ...req.body,
-      subCategoryId: subCatObjectId
-    });
-
+    const product = await SuperCategory.create(req.body);
     res.status(201).json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
 
-/* ================= GET BY SUBCATEGORY ================= */
 exports.getSuperCategories = async (req, res) => {
   try {
     const { subCategoryId } = req.params;
 
-    if (!mongoose.Types.ObjectId.isValid(subCategoryId)) {
-      return res.status(400).json({ message: "Invalid subCategoryId" });
-    }
-
     const data = await SuperCategory.find({
-      subCategoryId: new mongoose.Types.ObjectId(subCategoryId),
+      subCategoryId,
       isActive: true
-    }).sort({ isDefault: -1, kg: 1 });
+    }).sort({ kg: 1 });
 
-    res.status(200).json(data);
+    res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 };
-
-/* ================= GET SINGLE PRODUCT ================= */
 exports.getSuperCategoryById = async (req, res) => {
   try {
     const { productId } = req.params;
@@ -68,7 +51,7 @@ exports.getSuperCategoryById = async (req, res) => {
     }
 
     const product = await SuperCategory.findOne({
-      _id: new mongoose.Types.ObjectId(productId),
+      _id: productId,
       isActive: true
     });
 
@@ -76,7 +59,7 @@ exports.getSuperCategoryById = async (req, res) => {
       return res.status(404).json({ message: "Product not found" });
     }
 
-    res.status(200).json(product);
+    res.json(product);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
