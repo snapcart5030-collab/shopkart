@@ -26,7 +26,18 @@ const productSchema = new mongoose.Schema(
     },
 
     images: {
-      type: [String],
+      type: [String],   // main product images
+      default: []
+    },
+
+    thumbnails: {
+      type: [String],   // 👈 4 thumbnail images
+      validate: {
+        validator: function (val) {
+          return val.length <= 4;
+        },
+        message: "Only 4 thumbnails allowed"
+      },
       default: []
     },
 
