@@ -17,10 +17,9 @@ exports.getProfile = async (req, res) => {
       user = await User.create({
         uid: req.user.uid,
         email: req.user.email,
+        emailVerified: req.user.email_verified,
         name: req.user.name || "",
-        mobile: "",
-        role: "user",
-        emailVerified: true,
+        photo: req.user.picture || "",
         lastLogin: new Date(),
       });
       console.log("✅ New user created in database");
@@ -210,12 +209,12 @@ exports.createProfile = async (req, res) => {
     user = await User.create({
       uid: req.user.uid,
       email: req.user.email,
-      name: name.trim(),
-      mobile: mobile || "",
-      role: "user",
-      emailVerified: true,
+      emailVerified: req.user.email_verified,
+      name: req.user.name || "",
+      photo: req.user.picture || "",
       lastLogin: new Date(),
     });
+
 
     console.log("✅ New user created in database");
 
