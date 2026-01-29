@@ -47,7 +47,7 @@ exports.createOrder = async (req, res) => {
         address: address?.address || "",
         type: address?.type || "HOME"
       },
-      status: "Pending"
+      status: "PLACED"
     });
 
     return res.status(201).json({
@@ -87,7 +87,7 @@ exports.getOrdersByUser = async (req, res) => {
 };
 
 /* =========================
-   CANCEL ORDER (NEW)
+   CANCEL ORDER
 ========================= */
 exports.cancelOrder = async (req, res) => {
   try {
@@ -118,8 +118,8 @@ exports.cancelOrder = async (req, res) => {
     }
 
     if (
-      order.status === "Delivered" ||
-      order.status === "Cancelled"
+      order.status === "DELIVERED" ||
+      order.status === "CANCELLED"
     ) {
       return res.status(400).json({
         success: false,
@@ -127,7 +127,7 @@ exports.cancelOrder = async (req, res) => {
       });
     }
 
-    order.status = "Cancelled";
+    order.status = "CANCELLED";
     await order.save();
 
     return res.json({

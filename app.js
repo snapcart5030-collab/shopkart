@@ -2,13 +2,11 @@ const express = require("express");
 const cors = require("cors");
 const path = require("path");
 
-
-
 const app = express();
 
 // ================== MIDDLEWARE ==================
 app.use(cors({
-  origin: "*",   // allow all (for now)
+  origin: "*",
   methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
@@ -41,8 +39,6 @@ app.use("/api/contact", require("./routes/contactRoutes"));
 // ================== ORDERS & PAYMENTS ==================
 app.use("/api/orders", require("./routes/orderRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
-app.use("/api/current-orders", require("./routes/currentOrderRoutes"));
-
 
 // ================== ADMIN ==================
 app.use("/api/admin", require("./routes/adminRoutes"));
@@ -50,12 +46,13 @@ app.use("/api/admin/orders", require("./routes/adminOrderRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
 // ================== ROOT ==================
 app.get("/", (req, res) => {
   res.send("✅ ShopKart API Running Successfully");
 });
 
-// ================== 404 HANDLER ==================
+// ================== 404 ==================
 app.use((req, res) => {
   res.status(404).json({ message: "API route not found" });
 });

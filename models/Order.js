@@ -42,16 +42,32 @@ const orderSchema = new mongoose.Schema(
       }
     },
 
+    // 🔥 DELIVERY READY STATUS
     status: {
       type: String,
       enum: [
-        "Pending",
-        "Confirmed",
-        "Shipped",
-        "Delivered",
-        "Cancelled"
+        "PLACED",
+        "CONFIRMED",
+        "ASSIGNED",
+        "OUT_FOR_DELIVERY",
+        "DELIVERED",
+        "CANCELLED"
       ],
-      default: "Pending"
+      default: "PLACED"
+    },
+
+    // 🧑‍✈️ DELIVERY BOY
+    deliveryBoyId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null
+    },
+
+    // 📍 LIVE LOCATION
+    deliveryBoyLocation: {
+      lat: Number,
+      lng: Number,
+      updatedAt: Date
     }
   },
   { timestamps: true }

@@ -7,6 +7,17 @@ const {
   cancelOrder
 } = require("../controllers/orderController");
 
+const {
+  confirmOrder,
+  assignDeliveryBoy
+} = require("../controllers/adminOrderController");
+
+const {
+  startDelivery,
+  updateLocation,
+  completeOrder
+} = require("../controllers/deliveryController");
+
 // ➕ CREATE ORDER
 router.post("/", createOrder);
 
@@ -15,5 +26,12 @@ router.get("/user/:userId", getOrdersByUser);
 
 // ❌ CANCEL ORDER
 router.put("/cancel/:orderId", cancelOrder);
+
+// ✅ ADMIN / DELIVERY FLOW
+router.put("/:orderId/confirm", confirmOrder);
+router.put("/:orderId/assign", assignDeliveryBoy);
+router.put("/:orderId/start", startDelivery);
+router.put("/:orderId/location", updateLocation);
+router.put("/:orderId/complete", completeOrder);
 
 module.exports = router;
