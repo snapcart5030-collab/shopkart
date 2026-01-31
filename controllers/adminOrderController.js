@@ -1,4 +1,9 @@
 const Order = require("../models/Order");
+const admin = require("../config/firebaseAdmin");
+const {
+  sendUserOrderConfirmedMail,
+  sendAdminOrderConfirmedMail
+} = require("../utils/sendEmail");
 
 // 📦 Get all orders
 exports.getAllOrders = async (req, res) => {
@@ -10,7 +15,7 @@ exports.getAllOrders = async (req, res) => {
   }
 };
 
-// ✅ Admin confirms order
+// ✅ CONFIRM ORDER + SEND EMAILS
 exports.confirmOrder = async (req, res) => {
   try {
     const order = await Order.findById(req.params.orderId);
@@ -25,16 +30,31 @@ exports.confirmOrder = async (req, res) => {
       });
     }
 
+    // 1️⃣ Update status
     order.status = "CONFIRMED";
     await order.save();
 
-    res.json(order);
+    // 2️⃣ Get USER EMAIL from Firebase Auth
+    const userRecord = await admin.auth().getUser(order.userId);
+    const userEmail = userRecord.email;
+
+    // 3️⃣ Send EMAILS
+    await sendUserOrderConfirmedMail(userEmail, order._id);
+    await sendAdminOrderConfirmedMail(order._id);
+
+    res.json({
+      success: true,
+      message: "Order confirmed & emails sent",
+      order
+    });
+
   } catch (err) {
+    console.error("Confirm order error:", err);
     res.status(500).json({ message: err.message });
   }
 };
 
-// 🧑‍✈️ Admin assigns delivery boy
+// 🧑‍✈️ Assign delivery boy
 exports.assignDeliveryBoy = async (req, res) => {
   try {
     const { deliveryBoyId } = req.body;
