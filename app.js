@@ -16,7 +16,10 @@ app.use(express.json());
 // ================== AUTH & USER ==================
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/profile", require("./routes/profileRoutes"));
-app.use("/api/admin/auth", require("./routes/adminAuthRoutes")); // ✅ REQUIRED
+ // ✅ REQUIRED
+
+
+
 
 // ================== CATEGORY FLOW ==================
 app.use("/api/categories", require("./routes/categoryRoutes"));
@@ -41,8 +44,7 @@ app.use("/api/contact", require("./routes/contactRoutes"));
 app.use("/api/orders", require("./routes/orderRoutes"));
 app.use("/api/payments", require("./routes/paymentRoutes"));
 
-// ================== ADMIN ==================
-app.use("/api/admin", require("./routes/adminRoutes"));
+ app.use("/api/admin", require("./routes/adminRoutes"));
 app.use("/api/admin/orders", require("./routes/adminOrderRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
 
