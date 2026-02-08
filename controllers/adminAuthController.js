@@ -1,28 +1,32 @@
-const User = require("../models/User");
+const Admin = require("../models/Admin");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 // ================= ADMIN REGISTER =================
 exports.adminRegister = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { email, password, name } = req.body;
 
-    const exists = await User.findOne({ email });
+    if (!email || !password) {
+      return res.status(400).json({ message: "Missing fields" });
+    }
+
+    const exists = await Admin.findOne({ email });
     if (exists) {
       return res.status(400).json({ message: "Admin already exists" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await User.create({
-      name,
+    await Admin.create({
       email,
       password: hashedPassword,
-      role: "admin"
+      name,
     });
 
     res.status(201).json({ message: "Admin registered successfully" });
   } catch (error) {
+    console.error("ADMIN REGISTER ERROR:", error);
     res.status(500).json({ message: "Admin register failed" });
   }
 };
@@ -32,7 +36,7 @@ exports.adminLogin = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const admin = await User.findOne({ email, role: "admin" });
+    const admin = await Admin.findOne({ email });
     if (!admin) {
       return res.status(401).json({ message: "Admin not found" });
     }
@@ -43,19 +47,21 @@ exports.adminLogin = async (req, res) => {
     }
 
     const token = jwt.sign(
-      { id: admin._id, role: admin.role },
+      { id: admin._id, role: "admin" },
       process.env.JWT_SECRET,
       { expiresIn: "7d" }
     );
 
     res.json({
       token,
-      user: {
-        _id: admin._id,
-        role: admin.role
-      }
+      admin: {
+        id: admin._id,
+        email: admin.email,
+        role: "admin",
+      },
     });
   } catch (error) {
+    console.error("ADMIN LOGIN ERROR:", error);
     res.status(500).json({ message: "Admin login failed" });
   }
 };
