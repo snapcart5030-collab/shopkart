@@ -4,7 +4,8 @@ const router = express.Router();
 const {
   createOrder,
   getOrdersByUser,
-  cancelOrder
+  cancelOrder,
+  getAllOrders
 } = require("../controllers/orderController");
 
 const {
@@ -15,11 +16,14 @@ const {
 const {
   startDelivery,
   updateLocation,
-  completeOrder
+  completeOrder,
+
+
 } = require("../controllers/deliveryController");
 
 // ➕ CREATE ORDER
 router.post("/", createOrder);
+router.get("/", getAllOrders);
 
 // 📥 GET ORDERS BY USER
 router.get("/user/:userId", getOrdersByUser);

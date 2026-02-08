@@ -86,6 +86,17 @@ exports.getOrdersByUser = async (req, res) => {
   }
 };
 
+exports.getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+    res.json(orders);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch all orders"
+    });
+  }
+};
 /* =========================
    CANCEL ORDER
 ========================= */
