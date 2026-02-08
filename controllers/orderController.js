@@ -5,7 +5,7 @@ const Order = require("../models/Order");
 ========================= */
 exports.createOrder = async (req, res) => {
   try {
-    const { userId, items, totalAmount, paymentMethod, address } = req.body;
+    const { userId, email, items, totalAmount, paymentMethod, address } = req.body;
 
     if (!userId) {
       return res.status(400).json({
@@ -40,7 +40,9 @@ exports.createOrder = async (req, res) => {
 
     const order = await Order.create({
       userId: String(userId),
+      email: email || "",
       items: cleanItems,
+
       totalAmount: finalTotal,
       paymentMethod: paymentMethod || "COD",
       address: {
