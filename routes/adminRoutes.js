@@ -56,6 +56,21 @@ router.post("/register", async (req, res) => {
     res.status(500).json({ message: "Admin register failed" });
   }
 });
+// ================= ADMIN PROFILE =================
+router.get("/me", async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1];
+    if (!token) return res.status(401).json({ message: "No token" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+    const admin = await Admin.findById(decoded.id).select("-password");
+
+    res.json(admin);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load admin data" });
+  }
+});
 
 // ================= ADMIN LOGIN =================
 router.post("/login", async (req, res) => {
