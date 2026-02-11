@@ -2,25 +2,25 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
-    user: {
-  uid: {
-    type: String,
-    required: true
-  },
-  name: {
-    type: String,
-    default: ""
-  },
-  email: {
-    type: String,
-    default: ""
-  },
-  mobile: {
-    type: String,
-    default: ""
-  }
-},
+    userId: {
+      type: String, // firebase uid
+      required: true
+    },
 
+    userDetails: {
+      name: {
+        type: String,
+        default: ""
+      },
+      email: {
+        type: String,
+        default: ""
+      },
+      mobile: {
+        type: String,
+        default: ""
+      }
+    },
 
     items: [
       {
@@ -57,7 +57,6 @@ const orderSchema = new mongoose.Schema(
       }
     },
 
-    // 🔥 DELIVERY READY STATUS
     status: {
       type: String,
       enum: [
@@ -71,14 +70,12 @@ const orderSchema = new mongoose.Schema(
       default: "PLACED"
     },
 
-    // 🧑‍✈️ DELIVERY BOY
     deliveryBoyId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null
     },
 
-    // 📍 LIVE LOCATION
     deliveryBoyLocation: {
       lat: Number,
       lng: Number,
