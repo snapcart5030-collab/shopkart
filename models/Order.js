@@ -2,14 +2,25 @@ const mongoose = require("mongoose");
 
 const orderSchema = new mongoose.Schema(
   {
-    userId: {
-      type: String, // firebase uid
-      required: true
-    },
-     email: {
-      type: String,
-      default: ""
-    },
+    user: {
+  uid: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    default: ""
+  },
+  email: {
+    type: String,
+    default: ""
+  },
+  mobile: {
+    type: String,
+    default: ""
+  }
+},
+
 
     items: [
       {
