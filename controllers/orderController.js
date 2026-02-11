@@ -5,7 +5,8 @@ const Order = require("../models/Order");
 ========================= */
 exports.createOrder = async (req, res) => {
   try {
-    const { userId, email, items, totalAmount, paymentMethod, address } = req.body;
+   const { userId, userDetails, items, totalAmount, paymentMethod, address } = req.body;
+
 
     if (!userId) {
       return res.status(400).json({
@@ -38,19 +39,25 @@ exports.createOrder = async (req, res) => {
       image: item.image || ""
     }));
 
-    const order = await Order.create({
-      userId: String(userId),
-      email: email || "",
-      items: cleanItems,
+   const order = await Order.create({
+  userId: String(userId),
 
-      totalAmount: finalTotal,
-      paymentMethod: paymentMethod || "COD",
-      address: {
-        address: address?.address || "",
-        type: address?.type || "HOME"
-      },
-      status: "PLACED"
-    });
+  userDetails: {
+    name: userDetails?.name || "",
+    email: userDetails?.email || "",   // ✅ FIXED
+    mobile: userDetails?.mobile || ""
+  },
+
+  items: cleanItems,
+  totalAmount: finalTotal,
+  paymentMethod: paymentMethod || "COD",
+  address: {
+    address: address?.address || "",
+    type: address?.type || "HOME"
+  },
+  status: "PLACED"
+});
+
 
     return res.status(201).json({
       success: true,
