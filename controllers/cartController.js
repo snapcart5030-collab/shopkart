@@ -56,6 +56,9 @@ exports.addToCart = async (req, res) => {
   }
 };
 
+
+
+
 // ☑️ SELECT / UNSELECT ITEM
 exports.toggleSelectItem = async (req, res) => {
   try {
@@ -83,6 +86,26 @@ exports.toggleSelectItem = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 };
+
+exports.removeSelectedItems = async (req, res) => {
+  try {
+    const { userId } = req.body;
+
+    const cart = await Cart.findOne({ userId });
+    if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+    cart.items = cart.items.filter(item => !item.isSelected);
+    cart.totalPrice = 0;
+
+    await cart.save();
+
+    res.json(cart);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 
 // 📥 GET CART
 exports.getCart = async (req, res) => {
