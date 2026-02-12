@@ -2,7 +2,9 @@ const Cart = require("../models/Cart");
 
 // 🔢 total calculation
 const calculateTotal = (items) =>
-  items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  items
+    .filter(item => item.isSelected)
+    .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
 // ➕ ADD TO CART
 exports.addToCart = async (req, res) => {
@@ -16,12 +18,15 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ userId });
 
     if (!cart) {
+      product.isSelected = false;
+
       cart = await Cart.create({
         userId,
         email,
         items: [product],
-        totalPrice: product.price * product.quantity
+        totalPrice: 0
       });
+
     } else {
       const index = cart.items.findIndex(
         (i) =>
@@ -32,6 +37,7 @@ exports.addToCart = async (req, res) => {
       if (index > -1) {
         cart.items[index].quantity += product.quantity;
       } else {
+        product.isSelected = false;
         cart.items.push(product);
       }
 
@@ -47,6 +53,34 @@ exports.addToCart = async (req, res) => {
       message: "Add to cart failed",
       error: error.message
     });
+  }
+};
+
+// ☑️ SELECT / UNSELECT ITEM
+exports.toggleSelectItem = async (req, res) => {
+  try {
+    const { userId, productId, kg, isSelected } = req.body;
+
+    const cart = await Cart.findOne({ userId });
+    if (!cart) return res.status(404).json({ message: "Cart not found" });
+
+    const item = cart.items.find(
+      (i) =>
+        i.productId.toString() === productId &&
+        i.kg === kg
+    );
+
+    if (!item) return res.status(404).json({ message: "Item not found" });
+
+    item.isSelected = isSelected;
+
+    cart.totalPrice = calculateTotal(cart.items);
+    await cart.save();
+
+    res.json(cart);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
 };
 
@@ -113,7 +147,8 @@ exports.removeItem = async (req, res) => {
     res.json(cart);
 
   } catch (error) {
-    res.status(500).json({ message: errori.error });
+    res.status(500).json({ message: error.message });
+
   }
 };
 

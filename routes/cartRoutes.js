@@ -6,7 +6,8 @@ const {
   getCart,
   updateQuantity,
   removeItem,
-  clearCart
+  clearCart,
+  toggleSelectItem
 } = require("../controllers/cartController");
 
 // ➕ add
@@ -23,5 +24,6 @@ router.delete("/remove", removeItem);
 
 // 🧹 clear
 router.delete("/clear/:userId", clearCart);
+router.put("/select", toggleSelectItem);
 
 module.exports = router;

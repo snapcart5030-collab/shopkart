@@ -20,31 +20,24 @@ const cartSchema = new mongoose.Schema(
           type: mongoose.Schema.Types.ObjectId,
           required: true
         },
-
-        name: {
-          type: String,
-          required: true
-        },
-
-        price: {
-          type: Number,
-          required: true
-        },
-
-        kg: {
-          type: String,
-          required: true
-        },
-
+        name: String,
+        price: Number,
+        kg: String,
         quantity: {
           type: Number,
           default: 1,
           min: 1
         },
+        image: String,
 
-        image: String
+        // ✅ NEW
+        isSelected: {
+          type: Boolean,
+          default: false
+        }
       }
     ],
+
 
     totalPrice: {
       type: Number,
