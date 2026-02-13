@@ -124,6 +124,7 @@ exports.updateProduct = async (req, res) => {
 };
 
 /* ================= DELETE PRODUCT (SOFT DELETE) ================= */
+/* ================= DELETE PRODUCT (SOFT DELETE) ================= */
 exports.deleteProduct = async (req, res) => {
   try {
     const { id } = req.params;
