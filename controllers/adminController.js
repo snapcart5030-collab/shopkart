@@ -2,6 +2,53 @@ const Admin = require("../models/Admin");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
+
+exports.getProfileById = async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.params.id).select("-password");
+    res.json(admin);
+  } catch (err) {
+    res.status(500).json({ message: "Failed to load profile" });
+  }
+};exports.updateAdmin = async (req, res) => {
+  try {
+    const updated = await Admin.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    ).select("-password");
+
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: "Update failed" });
+  }
+};exports.changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    const admin = await Admin.findById(req.params.id);
+
+    const isMatch = await bcrypt.compare(
+      currentPassword,
+      admin.password
+    );
+
+    if (!isMatch) {
+      return res.status(400).json({
+        message: "Current password incorrect"
+      });
+    }
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    admin.password = hashed;
+    await admin.save();
+
+    res.json({ message: "Password changed successfully" });
+
+  } catch (err) {
+    res.status(500).json({ message: "Password change failed" });
+  }
+};
 // ================= REGISTER =================
 exports.registerAdmin = async (req, res) => {
   try {
