@@ -25,20 +25,28 @@ const productSchema = new mongoose.Schema(
       required: true
     },
 
+    // 🔥 MAIN IMAGES (Minimum 4 Required)
     images: {
-      type: [String],   // main product images
-      default: []
-    },
-
-    thumbnails: {
-      type: [String],   // 👈 4 thumbnail images
+      type: [String],
+      required: true,
       validate: {
         validator: function (val) {
-          return val.length <= 4;
+          return val.length >= 4;
         },
-        message: "Only 4 thumbnails allowed"
-      },
-      default: []
+        message: "Minimum 4 product images required"
+      }
+    },
+
+    // 🔥 THUMBNAILS (Minimum 4 Required)
+    thumbnails: {
+      type: [String],
+      required: true,
+      validate: {
+        validator: function (val) {
+          return val.length >= 4;
+        },
+        message: "Minimum 4 thumbnails required"
+      }
     },
 
     price: {
