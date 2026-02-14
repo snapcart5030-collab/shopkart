@@ -1,35 +1,98 @@
-const User = require("../models/User");
-const Contact = require("../models/Contact");
-const Comment = require("../models/Comment");
+const Admin = require("../models/Admin");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-// 📊 Dashboard counts
-exports.dashboard = async (req, res) => {
-  const users = await User.countDocuments({ role: "user" });
-  const admins = await User.countDocuments({ role: "admin" });
-  const contacts = await Contact.countDocuments();
-  const comments = await Comment.countDocuments();
+// ================= REGISTER =================
+exports.registerAdmin = async (req, res) => {
+  try {
+    const { name, mobile, email, password } = req.body;
 
-  res.json({ users, admins, contacts, comments });
+    if (!name || !mobile || !email || !password) {
+      return res.status(400).json({ message: "All fields required" });
+    }
+
+    const exists = await Admin.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "Admin already exists" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await Admin.create({
+      name,
+      mobile,
+      email,
+      password: hashedPassword,
+      status: "pending",
+    });
+
+    res.json({ message: "Admin registered. Waiting for approval" });
+  } catch (err) {
+    res.status(500).json({ message: "Admin register failed" });
+  }
 };
 
-// 👥 Get all users
-exports.getUsers = async (req, res) => {
-  res.json(await User.find({ role: "user" }));
+// ================= LOGIN =================
+exports.loginAdmin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    const admin = await Admin.findOne({ email });
+    if (!admin) {
+      return res.status(401).json({ message: "Admin not found" });
+    }
+
+    if (admin.status !== "approved") {
+      return res
+        .status(403)
+        .json({ message: "Approval pending" });
+    }
+
+    const isMatch = await bcrypt.compare(password, admin.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    const token = jwt.sign(
+      { id: admin._id, role: "admin" },
+      process.env.JWT_SECRET,
+      { expiresIn: "7d" }
+    );
+
+    res.json({ token, name: admin.name });
+  } catch (err) {
+    res.status(500).json({ message: "Login failed" });
+  }
 };
 
-// 🔁 Change role (user ↔ admin)
-exports.changeRole = async (req, res) => {
-  const user = await User.findByIdAndUpdate(
+// ================= GET ALL ADMINS =================
+exports.getAdmins = async (req, res) => {
+  const admins = await Admin.find().select("-password");
+  res.json(admins);
+};
+
+// ================= APPROVE ADMIN =================
+exports.approveAdmin = async (req, res) => {
+  await Admin.findByIdAndUpdate(req.params.id, {
+    status: "approved",
+  });
+
+  res.json({ message: "Admin approved successfully" });
+};
+
+// ================= UPDATE ADMIN =================
+exports.updateAdmin = async (req, res) => {
+  const updated = await Admin.findByIdAndUpdate(
     req.params.id,
-    { role: req.body.role },
+    req.body,
     { new: true }
   );
 
-  res.json(user);
+  res.json(updated);
 };
 
-// ❌ Delete user
-exports.deleteUser = async (req, res) => {
-  await User.findByIdAndDelete(req.params.id);
-  res.json({ success: true });
+// ================= DELETE ADMIN =================
+exports.deleteAdmin = async (req, res) => {
+  await Admin.findByIdAndDelete(req.params.id);
+  res.json({ message: "Admin deleted successfully" });
 };
