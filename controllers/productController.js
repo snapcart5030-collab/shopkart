@@ -133,19 +133,21 @@ exports.searchProducts = async (req, res) => {
       return res.status(400).json({ error: "Search query required" });
     }
 
-    const products = await Product.find({
-      isActive: true,
-      name: { $regex: q, $options: "i" } // case insensitive
-    })
-      .populate("category", "name slug")
-      .populate("subCategory", "name slug")
-      .limit(20)
-      .sort({ createdAt: -1 });
+    const products = await Product.find(
+      {
+        $text: { $search: q },
+        isActive: true
+      },
+      {
+        score: { $meta: "textScore" }
+      }
+    )
+      .sort({ score: { $meta: "textScore" } })
+      .limit(15)
+      .populate("category", "name")
+      .populate("subCategory", "name");
 
-    res.json({
-      success: true,
-      products
-    });
+    res.json({ products });
 
   } catch (err) {
     res.status(500).json({ error: err.message });
