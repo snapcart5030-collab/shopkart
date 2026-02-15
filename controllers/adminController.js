@@ -10,19 +10,8 @@ exports.getProfileById = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Failed to load profile" });
   }
-};exports.updateAdmin = async (req, res) => {
-  try {
-    const updated = await Admin.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    ).select("-password");
-
-    res.json(updated);
-  } catch (err) {
-    res.status(500).json({ message: "Update failed" });
-  }
-};exports.changePassword = async (req, res) => {
+};
+  exports.changePassword = async (req, res) => {
   try {
     const { currentPassword, newPassword } = req.body;
 
@@ -106,7 +95,15 @@ exports.loginAdmin = async (req, res) => {
       { expiresIn: "7d" }
     );
 
-    res.json({ token, name: admin.name });
+    res.json({
+      token,
+      _id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      mobile: admin.mobile,
+      role: admin.role,
+      status: admin.status
+    });
   } catch (err) {
     res.status(500).json({ message: "Login failed" });
   }
@@ -129,13 +126,17 @@ exports.approveAdmin = async (req, res) => {
 
 // ================= UPDATE ADMIN =================
 exports.updateAdmin = async (req, res) => {
-  const updated = await Admin.findByIdAndUpdate(
-    req.params.id,
-    req.body,
-    { new: true }
-  );
+  try {
+    const updated = await Admin.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    ).select("-password");
 
-  res.json(updated);
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: "Update failed" });
+  }
 };
 
 // ================= DELETE ADMIN =================
