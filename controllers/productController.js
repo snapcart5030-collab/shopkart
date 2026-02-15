@@ -123,6 +123,35 @@ exports.updateProduct = async (req, res) => {
   }
 };
 
+
+/* ================= SEARCH PRODUCTS ================= */
+exports.searchProducts = async (req, res) => {
+  try {
+    const { q } = req.query;
+
+    if (!q) {
+      return res.status(400).json({ error: "Search query required" });
+    }
+
+    const products = await Product.find({
+      isActive: true,
+      name: { $regex: q, $options: "i" } // case insensitive
+    })
+      .populate("category", "name slug")
+      .populate("subCategory", "name slug")
+      .limit(20)
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      products
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
 /* ================= DELETE PRODUCT (SOFT DELETE) ================= */
 /* ================= DELETE PRODUCT (SOFT DELETE) ================= */
 exports.deleteProduct = async (req, res) => {

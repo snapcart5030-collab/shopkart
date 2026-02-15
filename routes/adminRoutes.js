@@ -4,7 +4,7 @@ const adminController = require("../controllers/adminController");
 
 // Register
 router.post("/register", adminController.registerAdmin);
-router.get("/profile/:id", adminController.getProfileById);
+router.get("/pr ofile/:id", adminController.getProfileById);
 router.put("/update/:id", adminController.updateAdmin);
 router.put("/change-password/:id", adminController.changePassword);
 // Login
