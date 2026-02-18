@@ -1,4 +1,5 @@
 const Address = require("../models/Address");
+const DeliveryZone = require("../models/DeliveryZone");
 
 // ➕ ADD ADDRESS
 exports.addAddress = async (req, res) => {
@@ -28,6 +29,38 @@ exports.addAddress = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+
+exports.checkDelivery = async (req, res) => {
+  try {
+    const { pincode } = req.body;
+
+    if (!pincode) {
+      return res.status(400).json({ message: "Pincode required" });
+    }
+
+    const zone = await DeliveryZone.findOne({
+      pincode,
+      isActive: true
+    });
+
+    if (!zone) {
+      return res.json({
+        serviceable: false,
+        message: "Delivery not available in this area"
+      });
+    }
+
+    res.json({
+      serviceable: true,
+      message: "Delivery available"
+    });
+
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 
 // 📥 GET ADDRESSES
 exports.getAddresses = async (req, res) => {
