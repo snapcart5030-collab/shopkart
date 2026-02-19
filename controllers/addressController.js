@@ -3,29 +3,39 @@ const Address = require("../models/Address");
 // ➕ ADD ADDRESS
 exports.addAddress = async (req, res) => {
   try {
-    const { address, type, isDefault, lat, lng } = req.body;
+    const { Name, Mobile, HNo, locality, City, State, Pincode, LandMark, Type, lat, lng } = req.body;
     const uid = req.user.uid;
 
-    if (!address) {
-      return res.status(400).json({ message: "Address required" });
-    }
-
-    if (isDefault) {
-      await Address.updateMany({ uid }, { isDefault: false });
-    }
+    // Check if this is the first address (make it default)
+    const addressCount = await Address.countDocuments({ uid });
+    const isDefault = addressCount === 0; // First address becomes default
 
     const newAddress = await Address.create({
       uid,
-      address,
-      type,
-      isDefault,
+      Name,
+      Mobile,
+      HNo,
+      locality,
+      City,
+      State,
+      Pincode,
+      LandMark,
+      Type,
       lat,
-      lng
+      lng,
+      isDefault
     });
 
-    res.status(201).json(newAddress);
+    res.status(201).json({
+      success: true,
+      address: newAddress,
+      message: "Address added successfully"
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 };
 
@@ -39,9 +49,15 @@ exports.getAddresses = async (req, res) => {
       createdAt: -1
     });
 
-    res.json(addresses);
+    res.json({
+      success: true,
+      addresses
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 };
 
@@ -49,25 +65,39 @@ exports.getAddresses = async (req, res) => {
 exports.updateAddress = async (req, res) => {
   try {
     const uid = req.user.uid;
-    const { address, type, isDefault, lat, lng } = req.body;
+    const { Name, Mobile, HNo, locality, City, State, Pincode, LandMark, Type, lat, lng, isDefault } = req.body;
 
+    // If setting this address as default, remove default from others
     if (isDefault) {
-      await Address.updateMany({ uid }, { isDefault: false });
+      await Address.updateMany({ uid, _id: { $ne: req.params.id } }, { isDefault: false });
     }
 
     const updated = await Address.findOneAndUpdate(
       { _id: req.params.id, uid },
-      { address, type, isDefault, lat, lng },
+      { 
+        Name, Mobile, HNo, locality, City, State, Pincode, 
+        LandMark, Type, lat, lng, isDefault 
+      },
       { new: true }
     );
 
     if (!updated) {
-      return res.status(404).json({ message: "Address not found" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "Address not found" 
+      });
     }
 
-    res.json(updated);
+    res.json({
+      success: true,
+      address: updated,
+      message: "Address updated successfully"
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 };
 
@@ -82,11 +112,65 @@ exports.deleteAddress = async (req, res) => {
     });
 
     if (!deleted) {
-      return res.status(404).json({ message: "Address not found" });
+      return res.status(404).json({ 
+        success: false, 
+        message: "Address not found" 
+      });
     }
 
-    res.json({ success: true });
+    // If deleted address was default, make another address default if exists
+    if (deleted.isDefault) {
+      const anotherAddress = await Address.findOne({ uid });
+      if (anotherAddress) {
+        anotherAddress.isDefault = true;
+        await anotherAddress.save();
+      }
+    }
+
+    res.json({ 
+      success: true, 
+      message: "Address deleted successfully" 
+    });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
+  }
+};
+
+// Set address as default
+exports.setDefaultAddress = async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const addressId = req.params.id;
+
+    // Remove default from all addresses
+    await Address.updateMany({ uid }, { isDefault: false });
+
+    // Set new default
+    const updated = await Address.findOneAndUpdate(
+      { _id: addressId, uid },
+      { isDefault: true },
+      { new: true }
+    );
+
+    if (!updated) {
+      return res.status(404).json({ 
+        success: false, 
+        message: "Address not found" 
+      });
+    }
+
+    res.json({
+      success: true,
+      address: updated,
+      message: "Default address updated"
+    });
+  } catch (error) {
+    res.status(500).json({ 
+      success: false, 
+      error: error.message 
+    });
   }
 };
