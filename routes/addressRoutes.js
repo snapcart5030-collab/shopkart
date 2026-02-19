@@ -6,15 +6,12 @@ const {
   addAddress,
   getAddresses,
   updateAddress,
-  deleteAddress,
-  setDefaultAddress
+  deleteAddress
 } = require("../controllers/addressController");
 
-// Address routes
 router.post("/", protect, addAddress);
 router.get("/", protect, getAddresses);
 router.put("/:id", protect, updateAddress);
 router.delete("/:id", protect, deleteAddress);
-router.patch("/:id/default", protect, setDefaultAddress);
 
 module.exports = router;
