@@ -4,12 +4,12 @@ const router = express.Router();
 const protect = require("../middlewares/authMiddleware");
 const User = require("../models/User");
 
-
+// ================= GET PROFILE =================
 router.get("/profile", protect, async (req, res) => {
   try {
     let user = await User.findOne({ uid: req.user.uid });
 
-    // 🆕 first time login → save user
+    // 🆕 First time login → save user
     if (!user) {
       user = await User.create({
         uid: req.user.uid,
@@ -22,6 +22,8 @@ router.get("/profile", protect, async (req, res) => {
       email: user.email,
       name: user.name,
       mobile: user.mobile,
+      gender: user.gender,   // ✅ added
+      age: user.age,         // ✅ added
       role: user.role,
       message: "User profile fetched successfully",
     });
@@ -32,15 +34,18 @@ router.get("/profile", protect, async (req, res) => {
 });
 
 
+// ================= UPDATE PROFILE =================
 router.put("/profile", protect, async (req, res) => {
   try {
-    const { name, mobile } = req.body;
+    const { name, mobile, gender, age } = req.body;
 
     const user = await User.findOneAndUpdate(
       { uid: req.user.uid },
       {
         name: name || "",
         mobile: mobile || "",
+        gender: gender || null,   // ✅ optional
+        age: age || null,         // ✅ optional
       },
       { new: true }
     );

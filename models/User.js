@@ -23,9 +23,21 @@ const userSchema = new mongoose.Schema({
     default: "",
   },
   photo: {
-    type: String, // image URL
+    type: String,
     default: "",
   },
+
+  // ✅ NEW FIELDS (OPTIONAL)
+  gender: {
+    type: String,
+    enum: ["male", "female", "other"], // optional but controlled values
+    default: null,
+  },
+  age: {
+    type: Number,
+    default: null,
+  },
+
   role: {
     type: String,
     enum: ["user", "admin"],
