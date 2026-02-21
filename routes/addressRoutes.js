@@ -5,12 +5,19 @@ const protect = require("../middlewares/authMiddleware");
 const {
   addAddress,
   getAddresses,
+  getAddressById,
   updateAddress,
-  deleteAddress
+  deleteAddress,
+  reverseGeocode,
+  searchAddresses
 } = require("../controllers/addressController");
 
+// All routes are protected (require authentication)
 router.post("/", protect, addAddress);
 router.get("/", protect, getAddresses);
+router.get("/search", protect, searchAddresses);
+router.get("/reverse-geocode", protect, reverseGeocode);
+router.get("/:id", protect, getAddressById);
 router.put("/:id", protect, updateAddress);
 router.delete("/:id", protect, deleteAddress);
 
