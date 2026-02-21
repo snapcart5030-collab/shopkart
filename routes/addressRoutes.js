@@ -9,7 +9,6 @@ const {
   updateAddress,
   deleteAddress,
   reverseGeocode,
-  getAddressFromPincode, // NEW
   searchAddresses
 } = require("../controllers/addressController");
 
@@ -18,7 +17,6 @@ router.post("/", protect, addAddress);
 router.get("/", protect, getAddresses);
 router.get("/search", protect, searchAddresses);
 router.get("/reverse-geocode", protect, reverseGeocode);
-router.get("/pincode", protect, getAddressFromPincode); // NEW
 router.get("/:id", protect, getAddressById);
 router.put("/:id", protect, updateAddress);
 router.delete("/:id", protect, deleteAddress);
