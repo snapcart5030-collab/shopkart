@@ -35,33 +35,49 @@ router.get("/profile", protect, async (req, res) => {
 
 
 // ================= UPDATE PROFILE =================
-router.put("/profile", protect, async (req, res) => {
-  try {
-    const { name, mobile, gender, age } = req.body;
+router.put(
+  "/profile",
+  protect,
+  upload.single("photo"),   // 👈 THIS WAS MISSING
+  async (req, res) => {
+    try {
+      console.log("BODY:", req.body);  // debug
+      console.log("FILE:", req.file);  // debug
 
-    const user = await User.findOneAndUpdate(
-      { uid: req.user.uid },
-      {
+      const { name, mobile, gender, age } = req.body;
+
+      const updateData = {
         name: name || "",
         mobile: mobile || "",
-        gender: gender || null,   // ✅ optional
-        age: age || null,         // ✅ optional
-      },
-      { new: true }
-    );
+        gender: gender || null,
+        age: age ? Number(age) : null,
+      };
 
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      // If new photo uploaded
+      if (req.file) {
+        updateData.photo = `/uploads/profile/${req.file.filename}`;
+      }
+
+      const user = await User.findOneAndUpdate(
+        { uid: req.user.uid },
+        updateData,
+        { new: true }
+      );
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({
+        message: "Profile updated successfully",
+        user,
+      });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
     }
-
-    res.json({
-      message: "Profile updated successfully",
-      user,
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Server error" });
   }
-});
+);
 
 module.exports = router;
