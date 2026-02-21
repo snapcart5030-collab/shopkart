@@ -259,12 +259,12 @@ exports.reverseGeocode = async (req, res) => {
       });
     }
 
-    // You can use OpenStreetMap Nominatim API (free, no API key required)
+    // Using OpenStreetMap Nominatim API (free, no API key required)
     const response = await fetch(
       `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
       {
         headers: {
-          'User-Agent': 'YourAppName/1.0'
+          'User-Agent': 'ShopKartApp/1.0'
         }
       }
     );
@@ -303,7 +303,50 @@ exports.reverseGeocode = async (req, res) => {
   }
 };
 
-// 🔍 SEARCH ADDRESSES (optional - for autocomplete)
+// 🔍 GET ADDRESS FROM PINCODE (NEW)
+exports.getAddressFromPincode = async (req, res) => {
+  try {
+    const { pincode } = req.query;
+    
+    if (!pincode || pincode.length !== 6) {
+      return res.status(400).json({ 
+        success: false,
+        message: "Valid 6-digit PIN code is required" 
+      });
+    }
+
+    // Using PostPIN API (free, no API key required)
+    const response = await fetch(`https://api.postalpincode.in/pincode/${pincode}`);
+    
+    const data = await response.json();
+    
+    if (!data || data[0]?.Status !== "Success") {
+      return res.status(404).json({ 
+        success: false,
+        message: "Could not find address for this PIN code" 
+      });
+    }
+
+    const postOffice = data[0].PostOffice[0];
+    
+    res.json({
+      success: true,
+      pincode: pincode,
+      city: postOffice.District,
+      state: postOffice.State,
+      area: postOffice.Name,
+      country: postOffice.Country
+    });
+  } catch (error) {
+    console.error("Pincode lookup error:", error);
+    res.status(500).json({ 
+      success: false,
+      error: error.message 
+    });
+  }
+};
+
+// 🔍 SEARCH ADDRESSES
 exports.searchAddresses = async (req, res) => {
   try {
     const uid = req.user.uid;
