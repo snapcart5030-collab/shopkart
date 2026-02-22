@@ -57,18 +57,22 @@ const orderSchema = new mongoose.Schema(
       }
     },
 
-    status: {
-      type: String,
-      enum: [
-        "PLACED",
-        "CONFIRMED",
-        "ASSIGNED",
-        "OUT_FOR_DELIVERY",
-        "DELIVERED",
-        "CANCELLED"
-      ],
-      default: "PLACED"
-    },
+   status: {
+  type: String,
+  enum: [
+    "PLACED",
+    "CONFIRMED",
+    "ASSIGNED",
+    "OUT_FOR_DELIVERY",
+    "DELIVERED",
+    "CANCELLED"
+  ],
+  default: "PLACED"
+},
+
+deliveryDate: {
+  type: Date
+},
 
     deliveryBoyId: {
       type: mongoose.Schema.Types.ObjectId,

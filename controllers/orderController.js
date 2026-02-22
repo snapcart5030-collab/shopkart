@@ -1,9 +1,48 @@
 const Order = require("../models/Order");
+exports.getOrderById = async (req, res) => {
+  try {
+    const { orderId } = req.params;
 
+    const order = await Order.findById(orderId);
+
+    if (!order) {
+      return res.status(404).json({ message: "Order not found" });
+    }
+
+    const now = new Date();
+
+    if (
+      order.deliveryDate &&
+      order.status !== "CANCELLED" &&
+      order.status !== "DELIVERED"
+    ) {
+      const totalTime = order.deliveryDate - order.createdAt;
+      const elapsed = now - order.createdAt;
+
+      const progress = Math.min((elapsed / totalTime) * 100, 100);
+
+      if (progress >= 100) order.status = "DELIVERED";
+      else if (progress >= 75) order.status = "OUT_FOR_DELIVERY";
+      else if (progress >= 50) order.status = "ASSIGNED";
+      else if (progress >= 25) order.status = "CONFIRMED";
+      else order.status = "PLACED";
+    }
+
+    return res.json(order);
+
+  } catch (error) {
+    return res.status(500).json({
+      message: "Failed to fetch order"
+    });
+  }
+};
 /* =========================
+
+
    CREATE ORDER
 ========================= */
 exports.createOrder = async (req, res) => {
+  
   try {
    const { userId, userDetails, items, totalAmount, paymentMethod, address } = req.body;
 
@@ -39,12 +78,15 @@ exports.createOrder = async (req, res) => {
       image: item.image || ""
     }));
 
-   const order = await Order.create({
+const deliveryDate = new Date();
+deliveryDate.setDate(deliveryDate.getDate() + 2);
+
+const order = await Order.create({
   userId: String(userId),
 
   userDetails: {
     name: userDetails?.name || "",
-    email: userDetails?.email || "",   // ✅ FIXED
+    email: userDetails?.email || "",
     mobile: userDetails?.mobile || ""
   },
 
@@ -55,7 +97,8 @@ exports.createOrder = async (req, res) => {
     address: address?.address || "",
     type: address?.type || "HOME"
   },
-  status: "PLACED"
+  status: "PLACED",
+  deliveryDate
 });
 
 
@@ -84,6 +127,27 @@ exports.getOrdersByUser = async (req, res) => {
     const orders = await Order
       .find({ userId: String(userId) })
       .sort({ createdAt: -1 });
+
+    const now = new Date();
+
+    orders.forEach(order => {
+
+      if (!order.deliveryDate) return;
+
+      if (order.status === "CANCELLED" || order.status === "DELIVERED") return;
+
+      const totalTime = order.deliveryDate - order.createdAt;
+      const elapsed = now - order.createdAt;
+
+      const progress = Math.min((elapsed / totalTime) * 100, 100);
+
+      if (progress >= 100) order.status = "DELIVERED";
+      else if (progress >= 75) order.status = "OUT_FOR_DELIVERY";
+      else if (progress >= 50) order.status = "ASSIGNED";
+      else if (progress >= 25) order.status = "CONFIRMED";
+      else order.status = "PLACED";
+
+    });
 
     return res.json(orders);
 

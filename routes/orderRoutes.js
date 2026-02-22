@@ -5,7 +5,9 @@ const {
   createOrder,
   getOrdersByUser,
   cancelOrder,
-  getAllOrders
+  getAllOrders,
+  getOrderById
+
 } = require("../controllers/orderController");
 
 const {
@@ -17,8 +19,6 @@ const {
   startDelivery,
   updateLocation,
   completeOrder,
-
-
 } = require("../controllers/deliveryController");
 
 // ➕ CREATE ORDER
@@ -30,7 +30,7 @@ router.get("/user/:userId", getOrdersByUser);
 
 // ❌ CANCEL ORDER
 router.put("/cancel/:orderId", cancelOrder);
-
+router.get("/:orderId", getOrderById);
 // ✅ ADMIN / DELIVERY FLOW
 router.put("/:orderId/confirm", confirmOrder);
 router.put("/:orderId/assign", assignDeliveryBoy);
