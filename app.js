@@ -16,6 +16,7 @@ app.use(express.json());
 // ================== AUTH & USER ==================
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/profile", require("./routes/profileRoutes"));
+app.use("/api/users", require("./routes/userRoutes")); // 👈 ADD THIS LINE
  // ✅ REQUIRED
 
 
