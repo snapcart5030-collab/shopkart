@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const protect = require("../middlewares/authMiddleware");
+const upload = require("../middlewares/uploadMiddleware"); // 👈 ADD THIS LINE
 const User = require("../models/User");
 
 // ================= GET PROFILE =================
@@ -33,7 +34,7 @@ router.get("/profile", protect, async (req, res) => {
   }
 });
 
-
+// ================= GET ALL USERS =================
 router.get("/all", async (req, res) => {
   try {
     const users = await User.find({}).sort({ createdAt: -1 });
@@ -48,7 +49,7 @@ router.get("/all", async (req, res) => {
 router.put(
   "/profile",
   protect,
-  upload.single("photo"),   // 👈 THIS WAS MISSING
+  upload.single("photo"),   // 👈 NOW FIXED
   async (req, res) => {
     try {
       console.log("BODY:", req.body);  // debug
