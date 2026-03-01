@@ -42,7 +42,7 @@ const protect = async (req, res, next) => {
       });
     }
 
-    // ✅ IMPORTANT CHANGE HERE
+    // ✅ IMPORTANT: This sets req.user with the decoded token
     req.user = decodedToken;
 
     console.log("✅ Authenticated User:", decodedToken.email);
