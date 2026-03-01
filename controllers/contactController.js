@@ -11,8 +11,7 @@ exports.sendMessage = async (req, res) => {
   }
 
   try {
-    // ✅ FIXED: Use req.user.user_id (Firebase UID) instead of req.user.uid
-    const userId = req.user.uid;
+    const userId = req.user.uid;   // ✅ FIXED
     const userEmail = req.user.email;
 
     let chat = await Contact.findOne({ userId });
@@ -25,7 +24,6 @@ exports.sendMessage = async (req, res) => {
       });
     }
 
-    // USER MESSAGE
     chat.messages.push({
       sender: "user",
       text: message,
@@ -33,7 +31,6 @@ exports.sendMessage = async (req, res) => {
       orderId: orderId || null
     });
 
-    // 🔥 AUTO SYSTEM FRIENDLY REPLY
     chat.messages.push({
       sender: "system",
       text: "Hi 👋 Thank you for contacting ShopKart Support. Our team will reply shortly. Please relax 😊",
@@ -42,16 +39,16 @@ exports.sendMessage = async (req, res) => {
 
     await chat.save();
 
-    // Return the updated chat
-    res.json({ 
-      success: true, 
+    res.json({
+      success: true,
       chat: {
         _id: chat._id,
         messages: chat.messages
       }
     });
+
   } catch (error) {
-    console.error("Error sending message:", error);
+    console.error("❌ Error sending message:", error);  // IMPORTANT
     res.status(500).json({ message: "Failed to send message" });
   }
 };
