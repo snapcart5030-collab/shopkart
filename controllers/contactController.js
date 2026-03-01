@@ -1,16 +1,11 @@
 const Contact = require("../models/Contact");
+const mongoose = require("mongoose");
 
 /* ============================
    USER: SEND MESSAGE
 ============================ */
 exports.sendMessage = async (req, res) => {
   const { message, orderId } = req.body;
-
-  // DEBUG: Log incoming request
-  console.log("\n🔵 NEW MESSAGE REQUEST");
-  console.log("Message:", message);
-  console.log("OrderId:", orderId);
-  console.log("User:", req.user?.uid, req.user?.email);
 
   if (!message) {
     return res.status(400).json({ message: "Message is required" });
@@ -20,99 +15,51 @@ exports.sendMessage = async (req, res) => {
     const userId = req.user.uid;
     const userEmail = req.user.email;
 
-    // DEBUG: Check if mongoose is working
-    console.log("Mongoose version:", mongoose.version);
-    console.log("MongoDB connected?", mongoose.connection.readyState === 1 ? "YES" : "NO");
-
     let chat = await Contact.findOne({ userId });
-    console.log("Chat found:", chat ? chat._id : "No chat found - will create new");
 
     if (!chat) {
-      chat = new Contact({
+      chat = await Contact.create({
         userId,
         email: userEmail,
         messages: []
       });
-      console.log("New chat object created");
     }
 
-    // Validate orderId
+    // Now mongoose will be defined
     let validOrderId = null;
-    if (orderId) {
-      const isValid = mongoose.Types.ObjectId.isValid(orderId);
-      console.log("OrderId valid?", isValid);
-      if (isValid) {
-        validOrderId = orderId;
-      }
+    if (orderId && mongoose.Types.ObjectId.isValid(orderId)) {
+      validOrderId = orderId;
     }
 
-    // Push user message
-    const userMessage = {
+    chat.messages.push({
       sender: "user",
       text: message,
       type: validOrderId ? "order" : "normal",
       orderId: validOrderId
-    };
-    
-    chat.messages.push(userMessage);
-    console.log("✅ User message added. Total messages:", chat.messages.length);
+    });
 
-    // Push system message
-    const systemMessage = {
+    chat.messages.push({
       sender: "system",
       text: "Hi 👋 Thank you for contacting ShopKart Support. Our team will reply shortly. Please relax 😊",
       type: "system",
       orderId: null
-    };
-    
-    chat.messages.push(systemMessage);
-    console.log("✅ System message added. Total messages:", chat.messages.length);
-
-    // DEBUG: Show messages before save
-    console.log("\nMessages before save:");
-    chat.messages.forEach((msg, i) => {
-      console.log(`  ${i+1}. ${msg.sender}: ${msg.text.substring(0, 30)}...`);
     });
 
-    // Save with explicit error handling
-    try {
-      const savedChat = await chat.save();
-      console.log("\n✅ CHAT SAVED SUCCESSFULLY");
-      console.log("Saved chat ID:", savedChat._id);
-      console.log("Total messages saved:", savedChat.messages.length);
-      
-      // Verify system message was saved
-      const hasSystemMessage = savedChat.messages.some(m => m.sender === 'system');
-      console.log("System message in saved chat:", hasSystemMessage ? "YES" : "NO");
+    await chat.save();
 
-      res.json({
-        success: true,
-        chat: {
-          _id: savedChat._id,
-          messages: savedChat.messages
-        }
-      });
-
-    } catch (saveError) {
-      console.error("❌ ERROR SAVING CHAT:", saveError);
-      
-      // Check for validation errors
-      if (saveError.name === 'ValidationError') {
-        console.error("Validation errors:", saveError.errors);
-        return res.status(400).json({ 
-          message: "Validation failed", 
-          errors: saveError.errors 
-        });
+    res.json({
+      success: true,
+      chat: {
+        _id: chat._id,
+        messages: chat.messages
       }
-      
-      throw saveError;
-    }
+    });
 
   } catch (error) {
-    console.error("❌ CRITICAL ERROR:", error);
+    console.error("❌ Error sending message:", error);
     res.status(500).json({ 
       message: "Failed to send message",
-      error: error.message 
+      error: error.message  // This will help debug
     });
   }
 };
@@ -265,14 +212,18 @@ exports.replyMessage = async (req, res) => {
       return res.status(404).json({ message: "Chat not found" });
     }
 
+    // Now mongoose will be defined here too
+    let validOrderId = null;
+    if (orderId && mongoose.Types.ObjectId.isValid(orderId)) {
+      validOrderId = orderId;
+    }
+
     // ADMIN REPLY
     chat.messages.push({
       sender: "admin",
       text,
       type: orderId ? "order" : "normal",
-      orderId: orderId && mongoose.Types.ObjectId.isValid(orderId)
-  ? orderId
-  : null
+      orderId: validOrderId
     });
 
     await chat.save();
