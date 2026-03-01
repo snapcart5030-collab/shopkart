@@ -12,40 +12,58 @@ exports.sendMessage = async (req, res) => {
   }
 
   try {
-    const userId = req.user.uid;
+    // Get user ID - Firebase can have it in different places
+    const userId = req.user.uid || req.user.user_id || req.user.sub;
     const userEmail = req.user.email;
+
+    console.log("Sending message for user:", userId, userEmail);
+
+    if (!userId) {
+      return res.status(400).json({ 
+        message: "User ID not found in token",
+        user: req.user 
+      });
+    }
 
     let chat = await Contact.findOne({ userId });
 
     if (!chat) {
-      chat = await Contact.create({
+      chat = new Contact({
         userId,
         email: userEmail,
         messages: []
       });
     }
 
-    // Now mongoose will be defined
+    // Validate orderId if provided
     let validOrderId = null;
     if (orderId && mongoose.Types.ObjectId.isValid(orderId)) {
       validOrderId = orderId;
     }
 
+    // Add user message
     chat.messages.push({
       sender: "user",
       text: message,
       type: validOrderId ? "order" : "normal",
-      orderId: validOrderId
+      orderId: validOrderId,
+      read: false
     });
 
+    // Add system message
     chat.messages.push({
       sender: "system",
       text: "Hi 👋 Thank you for contacting ShopKart Support. Our team will reply shortly. Please relax 😊",
       type: "system",
-      orderId: null
+      orderId: null,
+      read: false
     });
 
+    // Update lastMessageAt
+    chat.lastMessageAt = new Date();
+
     await chat.save();
+    console.log("Chat saved successfully. Total messages:", chat.messages.length);
 
     res.json({
       success: true,
@@ -59,7 +77,7 @@ exports.sendMessage = async (req, res) => {
     console.error("❌ Error sending message:", error);
     res.status(500).json({ 
       message: "Failed to send message",
-      error: error.message  // This will help debug
+      error: error.message
     });
   }
 };
@@ -69,6 +87,19 @@ exports.sendMessage = async (req, res) => {
 exports.testSystemMessage = async (req, res) => {
   try {
     console.log("\n🧪 TESTING SYSTEM MESSAGE");
+    
+    // Get user ID from multiple possible locations
+    const userId = req.user.uid || req.user.user_id || req.user.sub;
+    const userEmail = req.user.email;
+
+    console.log("Test for user:", userId, userEmail);
+
+    if (!userId) {
+      return res.status(400).json({ 
+        message: "User ID not found in token",
+        user: req.user 
+      });
+    }
     
     // Create a test message object
     const testMessage = {
@@ -81,24 +112,20 @@ exports.testSystemMessage = async (req, res) => {
     
     console.log("Test message object:", testMessage);
     
-    // Try to validate against schema
-    const Contact = require("../models/Contact");
-    
-    // Create a temporary chat or use existing
-    const userId = req.user.uid;
+    // Find or create chat
     let chat = await Contact.findOne({ userId });
     
     if (!chat) {
       chat = new Contact({
         userId: userId,
-        email: req.user.email,
+        email: userEmail,
         messages: []
       });
     }
     
     // Push test message
     chat.messages.push(testMessage);
-    console.log("Message pushed. Total messages:", chat.messages.length);
+    chat.lastMessageAt = new Date();
     
     // Save
     const saved = await chat.save();
@@ -136,8 +163,17 @@ exports.testSystemMessage = async (req, res) => {
 ============================ */
 exports.getMyMessages = async (req, res) => {
   try {
-    // ✅ FIXED: Use req.user.user_id
-   const userId = req.user.uid;
+    // Get user ID from multiple possible locations
+    const userId = req.user.uid || req.user.user_id || req.user.sub;
+    
+    console.log("Fetching messages for user:", userId);
+
+    if (!userId) {
+      return res.status(400).json({ 
+        message: "User ID not found in token",
+        user: req.user 
+      });
+    }
     
     const chat = await Contact.findOne({ userId })
       .populate('messages.orderId', 'orderId status total');
@@ -151,7 +187,9 @@ exports.getMyMessages = async (req, res) => {
       });
     }
     
+    console.log(`Found chat with ${chat.messages.length} messages`);
     res.json(chat);
+    
   } catch (error) {
     console.error("Error fetching messages:", error);
     res.status(500).json({ message: "Failed to fetch messages" });
