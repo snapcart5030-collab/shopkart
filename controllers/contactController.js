@@ -4,7 +4,7 @@ const Contact = require("../models/Contact");
    USER: SEND MESSAGE
 ============================ */
 exports.sendMessage = async (req, res) => {
-  const { message } = req.body;
+  const { message, orderId } = req.body;
 
   if (!message) {
     return res.status(400).json({ message: "Message is required" });
@@ -20,9 +20,18 @@ exports.sendMessage = async (req, res) => {
     });
   }
 
+  // USER MESSAGE
   chat.messages.push({
     sender: "user",
-    text: message
+    text: message,
+    type: orderId ? "order" : "normal",
+    orderId: orderId || null
+  });
+
+  // 🔥 AUTO SYSTEM FRIENDLY REPLY
+  chat.messages.push({
+    sender: "system",
+    text: "Hi 👋 Thank you for contacting ShopKart Support. Our team will reply shortly. Please relax 😊"
   });
 
   await chat.save();
@@ -50,7 +59,7 @@ exports.getMessages = async (req, res) => {
    ADMIN: REPLY TO USER
 ============================ */
 exports.replyMessage = async (req, res) => {
-  const { text } = req.body;
+  const { text, orderId } = req.body;
   const { id } = req.params;
 
   if (!text) {
@@ -65,7 +74,9 @@ exports.replyMessage = async (req, res) => {
 
   chat.messages.push({
     sender: "admin",
-    text
+    text,
+    type: orderId ? "order" : "normal",
+    orderId: orderId || null
   });
 
   await chat.save();
