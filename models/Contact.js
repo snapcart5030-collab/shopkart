@@ -1,69 +1,57 @@
 const mongoose = require("mongoose");
 
-const messageSchema = new mongoose.Schema(
-  {
-    sender: {
-      type: String, // "user" | "admin" | "system"
-      required: true,
-      enum: ["user", "admin", "system"]
-    },
-    text: {
-      type: String,
-      required: true
-    },
-    type: {
-      type: String, // "normal" | "order" | "system"
-      default: "normal",
-      enum: ["normal", "order", "system"]
-    },
-    orderId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Order",
-      default: null
-    },
-    read: {
-      type: Boolean,
-      default: false
-    }
+// Sub-schema for individual messages
+const messageSchema = new mongoose.Schema({
+  sender: {
+    type: String,
+    enum: ["user", "admin"],
+    required: [true, "Sender is required"]
   },
-  { timestamps: true }
-);
-
-const contactSchema = new mongoose.Schema(
-  {
-    userId: { 
-      type: String, 
-      required: true,
-      index: true 
-    },
-    email: { 
-      type: String, 
-      required: true 
-    },
-    messages: [messageSchema],
-    lastMessageAt: {
-      type: Date,
-      default: Date.now
-    }
-  },
-  { 
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
+  text: {
+    type: String,
+    required: [true, "Message text is required"],
+    trim: true
   }
-);
-
-// Update lastMessageAt when new message is added
-contactSchema.pre('save', function(next) {
-  if (this.messages.length > 0) {
-    this.lastMessageAt = new Date();
-  }
-  next();
+}, {
+  timestamps: true
 });
 
-// Virtual for unread count
-contactSchema.virtual('unreadCount').get(function() {
-  return this.messages.filter(m => !m.read && m.sender !== 'user').length;
+// Main contact schema for user conversations
+const contactSchema = new mongoose.Schema({
+  userId: {
+    type: String,
+    required: [true, "User ID is required"],
+    index: true
+  },
+  email: {
+    type: String,
+    required: [true, "Email is required"],
+    lowercase: true,
+    trim: true
+  },
+  messages: [messageSchema]
+}, {
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
 
-module.exports = mongoose.model("Contact", contactSchema);
+// Virtual for last message
+contactSchema.virtual("lastMessage").get(function() {
+  if (this.messages && this.messages.length > 0) {
+    return this.messages[this.messages.length - 1];
+  }
+  return null;
+});
+
+// Virtual for unread count (if you want to add an isRead field later)
+contactSchema.virtual("unreadCount").get(function() {
+  return this.messages ? this.messages.filter(m => !m.isRead).length : 0;
+});
+
+// Index for efficient queries
+contactSchema.index({ updatedAt: -1 });
+
+const Contact = mongoose.model("Contact", contactSchema);
+
+module.exports = Contact;

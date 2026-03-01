@@ -1,31 +1,25 @@
 const express = require("express");
 const router = express.Router();
-const contactController = require("../controllers/contactController");
-const protect = require("../middlewares/authMiddleware"); // Your protect middleware
+const protect = require("../middlewares/authMiddleware");
+const {
+  sendMessage,
+  getMessages,
+  replyMessage,
+  getMyMessages,
+} = require("../controllers/contactController");
 
-// Simple admin check middleware
-const isAdmin = (req, res, next) => {
-  // You can define your admin emails here or in env
-  const adminEmails = (process.env.ADMIN_EMAILS || 'admin@example.com').split(',');
-  
-  if (adminEmails.includes(req.user.email)) {
-    next();
-  } else {
-    res.status(403).json({ 
-      success: false, 
-      message: "Access denied. Admin only." 
-    });
-  }
-};
+/* ========================= USER ROUTES (LOGIN REQUIRED) ========================= */
+// User send message
+router.post("/", protect, sendMessage);
 
-// User routes (any authenticated user)
-router.post("/", protect, contactController.sendMessage);
-router.get("/my", protect, contactController.getMyMessages);
+// User get own chat
+router.get("/my", protect, getMyMessages);
 
-// Admin routes (admin only)
-router.get("/admin", protect, isAdmin, contactController.getMessages);
-router.get("/admin/:id", protect, isAdmin, contactController.getChatById);
-router.post("/admin/:id/reply", protect, isAdmin, contactController.replyMessage);
-router.put("/admin/:id/read", protect, isAdmin, contactController.markAsRead);
-router.post("/test-system", protect, contactController.testSystemMessage);
+/* ========================= ADMIN ROUTES (NO LOGIN) ========================= */
+// Admin get all user chats
+router.get("/admin", getMessages);
+
+// Admin reply to user
+router.post("/admin/reply/:id", replyMessage);
+
 module.exports = router;
