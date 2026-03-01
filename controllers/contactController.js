@@ -12,7 +12,7 @@ exports.sendMessage = async (req, res) => {
 
   try {
     // ✅ FIXED: Use req.user.user_id (Firebase UID) instead of req.user.uid
-    const userId = req.user.user_id;
+    const userId = req.user.uid;
     const userEmail = req.user.email;
 
     let chat = await Contact.findOne({ userId });
@@ -62,7 +62,7 @@ exports.sendMessage = async (req, res) => {
 exports.getMyMessages = async (req, res) => {
   try {
     // ✅ FIXED: Use req.user.user_id
-    const userId = req.user.user_id;
+   const userId = req.user.uid;
     
     const chat = await Contact.findOne({ userId })
       .populate('messages.orderId', 'orderId status total');
