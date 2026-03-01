@@ -27,5 +27,5 @@ router.get("/admin", protect, isAdmin, contactController.getMessages);
 router.get("/admin/:id", protect, isAdmin, contactController.getChatById);
 router.post("/admin/:id/reply", protect, isAdmin, contactController.replyMessage);
 router.put("/admin/:id/read", protect, isAdmin, contactController.markAsRead);
-
+router.post("/test-system", protect, contactController.testSystemMessage);
 module.exports = router;

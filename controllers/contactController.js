@@ -6,50 +6,181 @@ const Contact = require("../models/Contact");
 exports.sendMessage = async (req, res) => {
   const { message, orderId } = req.body;
 
+  // DEBUG: Log incoming request
+  console.log("\n🔵 NEW MESSAGE REQUEST");
+  console.log("Message:", message);
+  console.log("OrderId:", orderId);
+  console.log("User:", req.user?.uid, req.user?.email);
+
   if (!message) {
     return res.status(400).json({ message: "Message is required" });
   }
 
   try {
-    const userId = req.user.uid;   // ✅ FIXED
+    const userId = req.user.uid;
     const userEmail = req.user.email;
 
+    // DEBUG: Check if mongoose is working
+    console.log("Mongoose version:", mongoose.version);
+    console.log("MongoDB connected?", mongoose.connection.readyState === 1 ? "YES" : "NO");
+
     let chat = await Contact.findOne({ userId });
+    console.log("Chat found:", chat ? chat._id : "No chat found - will create new");
 
     if (!chat) {
-      chat = await Contact.create({
+      chat = new Contact({
         userId,
         email: userEmail,
         messages: []
       });
+      console.log("New chat object created");
     }
 
-    chat.messages.push({
+    // Validate orderId
+    let validOrderId = null;
+    if (orderId) {
+      const isValid = mongoose.Types.ObjectId.isValid(orderId);
+      console.log("OrderId valid?", isValid);
+      if (isValid) {
+        validOrderId = orderId;
+      }
+    }
+
+    // Push user message
+    const userMessage = {
       sender: "user",
       text: message,
-      type: orderId ? "order" : "normal",
-      orderId: orderId || null
-    });
+      type: validOrderId ? "order" : "normal",
+      orderId: validOrderId
+    };
+    
+    chat.messages.push(userMessage);
+    console.log("✅ User message added. Total messages:", chat.messages.length);
 
-    chat.messages.push({
+    // Push system message
+    const systemMessage = {
       sender: "system",
       text: "Hi 👋 Thank you for contacting ShopKart Support. Our team will reply shortly. Please relax 😊",
-      type: "system"
+      type: "system",
+      orderId: null
+    };
+    
+    chat.messages.push(systemMessage);
+    console.log("✅ System message added. Total messages:", chat.messages.length);
+
+    // DEBUG: Show messages before save
+    console.log("\nMessages before save:");
+    chat.messages.forEach((msg, i) => {
+      console.log(`  ${i+1}. ${msg.sender}: ${msg.text.substring(0, 30)}...`);
     });
 
-    await chat.save();
+    // Save with explicit error handling
+    try {
+      const savedChat = await chat.save();
+      console.log("\n✅ CHAT SAVED SUCCESSFULLY");
+      console.log("Saved chat ID:", savedChat._id);
+      console.log("Total messages saved:", savedChat.messages.length);
+      
+      // Verify system message was saved
+      const hasSystemMessage = savedChat.messages.some(m => m.sender === 'system');
+      console.log("System message in saved chat:", hasSystemMessage ? "YES" : "NO");
 
-    res.json({
-      success: true,
-      chat: {
-        _id: chat._id,
-        messages: chat.messages
+      res.json({
+        success: true,
+        chat: {
+          _id: savedChat._id,
+          messages: savedChat.messages
+        }
+      });
+
+    } catch (saveError) {
+      console.error("❌ ERROR SAVING CHAT:", saveError);
+      
+      // Check for validation errors
+      if (saveError.name === 'ValidationError') {
+        console.error("Validation errors:", saveError.errors);
+        return res.status(400).json({ 
+          message: "Validation failed", 
+          errors: saveError.errors 
+        });
       }
-    });
+      
+      throw saveError;
+    }
 
   } catch (error) {
-    console.error("❌ Error sending message:", error);  // IMPORTANT
-    res.status(500).json({ message: "Failed to send message" });
+    console.error("❌ CRITICAL ERROR:", error);
+    res.status(500).json({ 
+      message: "Failed to send message",
+      error: error.message 
+    });
+  }
+};
+
+
+// Add this temporary test endpoint
+exports.testSystemMessage = async (req, res) => {
+  try {
+    console.log("\n🧪 TESTING SYSTEM MESSAGE");
+    
+    // Create a test message object
+    const testMessage = {
+      sender: "system",
+      text: "This is a test system message",
+      type: "system",
+      orderId: null,
+      read: false
+    };
+    
+    console.log("Test message object:", testMessage);
+    
+    // Try to validate against schema
+    const Contact = require("../models/Contact");
+    
+    // Create a temporary chat or use existing
+    const userId = req.user.uid;
+    let chat = await Contact.findOne({ userId });
+    
+    if (!chat) {
+      chat = new Contact({
+        userId: userId,
+        email: req.user.email,
+        messages: []
+      });
+    }
+    
+    // Push test message
+    chat.messages.push(testMessage);
+    console.log("Message pushed. Total messages:", chat.messages.length);
+    
+    // Save
+    const saved = await chat.save();
+    console.log("Saved successfully. Messages now:", saved.messages.length);
+    
+    // Find the system message we just added
+    const justAdded = saved.messages[saved.messages.length - 1];
+    console.log("Last message saved:", {
+      sender: justAdded.sender,
+      text: justAdded.text,
+      type: justAdded.type
+    });
+    
+    res.json({
+      success: true,
+      message: "Test system message added",
+      data: {
+        chatId: saved._id,
+        lastMessage: justAdded
+      }
+    });
+    
+  } catch (error) {
+    console.error("❌ Test failed:", error);
+    res.status(500).json({ 
+      success: false, 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 };
 
@@ -139,7 +270,9 @@ exports.replyMessage = async (req, res) => {
       sender: "admin",
       text,
       type: orderId ? "order" : "normal",
-      orderId: orderId || null
+      orderId: orderId && mongoose.Types.ObjectId.isValid(orderId)
+  ? orderId
+  : null
     });
 
     await chat.save();
