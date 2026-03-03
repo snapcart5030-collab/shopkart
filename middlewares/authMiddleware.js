@@ -27,7 +27,7 @@ const protect = async (req, res, next) => {
 
     let decodedToken;
     try {
-      decodedToken = await admin.auth().verifyIdToken(token, true);
+     decodedToken = await admin.auth().verifyIdToken(token);
     } catch (error) {
       return res.status(401).json({
         success: false,
