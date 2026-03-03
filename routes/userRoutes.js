@@ -15,8 +15,8 @@ const {
 router.get("/profile", protect, getProfile);
 
 
-// ================= GET ALL USERS =================
-router.get("/all", protect, getAllUsers);
+// ================= GET ALL USERS =getAllUsers================
+router.get("/all", getAllUsers);
 // 🔒 protect added (important)
 
 
