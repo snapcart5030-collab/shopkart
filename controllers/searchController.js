@@ -26,8 +26,8 @@ exports.searchAll = async (req, res) => {
       name: regex,
       isActive: true
     })
-      .select("name images categoryId")
-      .populate("categoryId", "name");
+      .select('name images category')
+      .populate('category', 'name')
 
     const categoryIds = categories.map(c => c._id);
     const subcategoryIds = subcategories.map(s => s._id);
