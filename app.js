@@ -27,7 +27,6 @@ app.use("/api/categories", require("./routes/categoryRoutes"));
 app.use("/api/subcategories", require("./routes/subCategoryRoutes"));
 app.use("/api/supercategories", require("./routes/superCategoryRoutes"));
 app.use("/api/products", require("./routes/productRoutes"));
-app.use("/api/search", require("./routes/searchRoutes")); 
 
 // ================== SLIDER BANNER ==================
 app.use("/api/sliders", require("./routes/sliderRoutes"));
