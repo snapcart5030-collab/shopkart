@@ -62,9 +62,34 @@ const productSchema = new mongoose.Schema(
     },
 
     isActive: {
-      type: Boolean,
-      default: true
-    }
+  type: Boolean,
+  default: true
+},
+
+// ⭐ POPULAR PRODUCT
+isPopular: {
+  type: Boolean,
+  default: false
+},
+
+// 🔥 TRENDING PRODUCT
+isTrending: {
+  type: Boolean,
+  default: false
+},
+
+// 💥 HOT PRODUCT
+isHot: {
+  type: Boolean,
+  default: false
+},
+
+// 🏷 DISCOUNT %
+discount: {
+  type: Number,
+  default: 0
+},
+
   },
   { timestamps: true }
 );

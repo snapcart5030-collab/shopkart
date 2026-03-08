@@ -154,6 +154,32 @@ exports.searchProducts = async (req, res) => {
   }
 };
 
+
+exports.getTrendingProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ isTrending: true });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+exports.getPopularProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ isPopular: true });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};exports.getHotProducts = async (req, res) => {
+  try {
+    const products = await Product.find({ isHot: true });
+    res.json(products);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
 /* ================= DELETE PRODUCT (SOFT DELETE) ================= */
 /* ================= DELETE PRODUCT (SOFT DELETE) ================= */
 exports.deleteProduct = async (req, res) => {
