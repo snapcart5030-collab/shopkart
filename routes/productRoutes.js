@@ -10,7 +10,7 @@ const {
   searchProducts,
   getPopularProducts,
   getTrendingProducts,
-  getHotProducts,
+  getHotProducts
 } = require("../controllers/productController");
 
 /* SEARCH */
@@ -26,7 +26,7 @@ router.post("/", createProduct);
 router.get("/", getAllProducts);
 router.get("/sub/:subCategoryId", getProductsBySubCategory);
 
-/* ID ROUTE LAST */
+/* ID ROUTE MUST BE LAST */
 router.get("/:id", getProductById);
 router.put("/:id", updateProduct);
 router.delete("/:id", deleteProduct);
