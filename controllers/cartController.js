@@ -18,7 +18,7 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ userId });
 
     if (!cart) {
-      product.isSelected = false;
+     product.isSelected = true;
 
       cart = await Cart.create({
         userId,
