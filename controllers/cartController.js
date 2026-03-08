@@ -7,6 +7,7 @@ const calculateTotal = (items) =>
     .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
 // ➕ ADD TO CART
+// ➕ ADD TO CART
 exports.addToCart = async (req, res) => {
   try {
     const { userId, email, product } = req.body;
@@ -18,7 +19,8 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ userId });
 
     if (!cart) {
-     product.isSelected = true;
+      // NEW CART - set isSelected to true by default
+      product.isSelected = true;
 
       cart = await Cart.create({
         userId,
@@ -35,9 +37,12 @@ exports.addToCart = async (req, res) => {
       );
 
       if (index > -1) {
+        // EXISTING ITEM - increment quantity, keep existing selection state
         cart.items[index].quantity += product.quantity;
+        // Don't change the isSelected value - keep what was there
       } else {
-        product.isSelected = false;
+        // NEW ITEM IN EXISTING CART - set isSelected to true by default
+        product.isSelected = true;
         cart.items.push(product);
       }
 
