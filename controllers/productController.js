@@ -87,37 +87,31 @@ exports.getProductById = async (req, res) => {
 /* ================= UPDATE PRODUCT ================= */
 exports.updateProduct = async (req, res) => {
   try {
+
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ error: "Invalid product ID" });
     }
 
-    if (req.body.category && !mongoose.Types.ObjectId.isValid(req.body.category)) {
-      return res.status(400).json({ error: "Invalid category ID" });
+    const updateData = { ...req.body };
+
+    if (updateData.name) {
+      updateData.slug = slugify(updateData.name, { lower: true });
     }
 
-    if (req.body.subCategory && !mongoose.Types.ObjectId.isValid(req.body.subCategory)) {
-      return res.status(400).json({ error: "Invalid subCategory ID" });
-    }
-
-    const updateData = {
-      ...req.body
-    };
-
-    if (req.body.name) {
-      updateData.slug = slugify(req.body.name, { lower: true });
-    }
-
-    const product = await Product.findByIdAndUpdate(id, updateData, {
-      new: true
-    });
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { $set: updateData },
+      { new: true }
+    );
 
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
     }
 
     res.json(product);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
