@@ -1,4 +1,5 @@
 const router = require("express").Router();
+
 const {
   createProduct,
   getAllProducts,
@@ -10,22 +11,24 @@ const {
   getPopularProducts,
   getTrendingProducts,
   getHotProducts,
-
 } = require("../controllers/productController");
 
-/* CRUD ROUTES */
-router.get("/search", searchProducts); // ✅ ADD THIS
-router.post("/", createProduct);
-router.get("/", getAllProducts);
-router.get("/sub/:subCategoryId", getProductsBySubCategory);
-router.get("/:id", getProductById);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
+/* SEARCH */
+router.get("/search", searchProducts);
 
-
+/* SPECIAL ROUTES FIRST */
 router.get("/popular", getPopularProducts);
 router.get("/trending", getTrendingProducts);
 router.get("/hot", getHotProducts);
 
+/* NORMAL ROUTES */
+router.post("/", createProduct);
+router.get("/", getAllProducts);
+router.get("/sub/:subCategoryId", getProductsBySubCategory);
+
+/* ID ROUTE LAST */
+router.get("/:id", getProductById);
+router.put("/:id", updateProduct);
+router.delete("/:id", deleteProduct);
 
 module.exports = router;
