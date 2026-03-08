@@ -5,9 +5,9 @@ const mongoose = require("mongoose");
 /* ================= CREATE PRODUCT ================= */
 exports.createProduct = async (req, res) => {
   try {
+
     const { name, category, subCategory } = req.body;
 
-    // 🔒 Validate ObjectIds
     if (!mongoose.Types.ObjectId.isValid(category)) {
       return res.status(400).json({ error: "Invalid category ID" });
     }
@@ -18,10 +18,16 @@ exports.createProduct = async (req, res) => {
 
     const product = await Product.create({
       ...req.body,
-      slug: slugify(name, { lower: true })
+      slug: slugify(name, { lower: true }),
+
+      // force default false
+      isPopular: req.body.isPopular || false,
+      isTrending: req.body.isTrending || false,
+      isHot: req.body.isHot || false
     });
 
     res.status(201).json(product);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
