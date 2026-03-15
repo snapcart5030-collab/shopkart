@@ -38,6 +38,32 @@ exports.getProfileById = async (req, res) => {
     res.status(500).json({ message: "Password change failed" });
   }
 };
+
+
+// ================= TOGGLE ADMIN STATUS =================
+exports.toggleAdminStatus = async (req, res) => {
+  try {
+    const admin = await Admin.findById(req.params.id);
+    
+    if (!admin) {
+      return res.status(404).json({ message: "Admin not found" });
+    }
+
+    // Toggle status
+    const newStatus = admin.status === "approved" ? "pending" : "approved";
+    
+    admin.status = newStatus;
+    await admin.save();
+
+    res.json({ 
+      message: `Admin status changed to ${newStatus}`,
+      status: newStatus 
+    });
+  } catch (err) {
+    console.error("Toggle status error:", err);
+    res.status(500).json({ message: "Failed to toggle status" });
+  }
+};
 // ================= REGISTER =================
 exports.registerAdmin = async (req, res) => {
   try {

@@ -4,9 +4,10 @@ const adminController = require("../controllers/adminController");
 
 // Register
 router.post("/register", adminController.registerAdmin);
-router.get("/profile/:id", adminController.getProfileById);  // Fixed: removed space
+router.get("/profile/:id", adminController.getProfileById);
 router.put("/update/:id", adminController.updateAdmin);
 router.put("/change-password/:id", adminController.changePassword);
+
 // Login
 router.post("/login", adminController.loginAdmin);
 
@@ -15,6 +16,9 @@ router.get("/list", adminController.getAdmins);
 
 // Approve admin
 router.put("/approve/:id", adminController.approveAdmin);
+
+// NEW ROUTE: Toggle admin status (pending <-> approved)
+router.put("/toggle-status/:id", adminController.toggleAdminStatus);
 
 // Delete admin
 router.delete("/delete/:id", adminController.deleteAdmin);
