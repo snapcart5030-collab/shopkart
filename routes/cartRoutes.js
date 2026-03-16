@@ -10,24 +10,32 @@ const {
   toggleSelectItem,
   removeSelectedItems,
   getUserCart,
+  getAllCarts
 } = require("../controllers/cartController");
 
-// ➕ add
+
+// ➕ ADD TO CART
 router.post("/add", addToCart);
 
-// 📥 get
-router.get("/:userId", getCart);
+// 📥 GET USER CART
+router.get("/user/:userId", getUserCart);
 
-// 🔄 update qty
+// 🔄 UPDATE QUANTITY
 router.put("/update", updateQuantity);
 
-// ❌ remove
+// ❌ REMOVE ITEM
 router.delete("/remove", removeItem);
 
-// 🧹 clear
+// 🧹 CLEAR CART
 router.delete("/clear/:userId", clearCart);
+
+// ☑️ SELECT / UNSELECT
 router.put("/select", toggleSelectItem);
+
+// 🧹 REMOVE SELECTED ITEMS
 router.put("/remove-selected", removeSelectedItems);
-router.get("/:userId", getUserCart);
+
+// 📦 ADMIN - GET ALL USERS CART
+router.get("/admin/all-carts", getAllCarts);
 
 module.exports = router;

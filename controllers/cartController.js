@@ -61,6 +61,26 @@ exports.addToCart = async (req, res) => {
   }
 };
 
+// 📦 ADMIN - GET ALL USERS CART
+exports.getAllCarts = async (req, res) => {
+  try {
+
+    const carts = await Cart.find({}).sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: carts.length,
+      carts
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      message: "Failed to fetch carts",
+      error: error.message
+    });
+  }
+};
+
 exports.getUserCart = async (req, res) => {
   try {
     const { userId } = req.params;
