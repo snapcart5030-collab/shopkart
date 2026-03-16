@@ -50,6 +50,30 @@ exports.getWishlist = async (req, res) => {
   }
 };
 
+
+/* ================= ADMIN GET ALL ================= */
+
+exports.getAllWishlists = async (req, res) => {
+  try {
+
+    const wishlists = await Wishlist.find({}).sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: wishlists.length,
+      wishlists
+    });
+
+  } catch (err) {
+
+    console.error("GET ALL WISHLIST ERROR 🔥", err);
+
+    res.status(500).json({
+      message: "Server error"
+    });
+
+  }
+};
 /* ================= REMOVE ================= */
 exports.removeFromWishlist = async (req, res) => {
   try {
