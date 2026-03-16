@@ -1,64 +1,64 @@
-const express = require("express");
-const cors = require("cors");
-const path = require("path");
+  const express = require("express");
+  const cors = require("cors");
+  const path = require("path");
 
-const app = express();
+  const app = express();
 
-// ================== MIDDLEWARE ==================
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+  // ================== MIDDLEWARE ==================
+  app.use(cors({
+    origin: "*",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"]
+  }));
 
-app.use(express.json());
+  app.use(express.json());
 
-// ================== AUTH & USER ==================
-app.use("/api/auth", require("./routes/authRoutes"));
-app.use("/api/profile", require("./routes/profileRoutes"));
-app.use("/api/users", require("./routes/userRoutes")); // 👈 ADD THIS LINE
- // ✅ REQUIRED
-
-
+  // ================== AUTH & USER ==================
+  app.use("/api/auth", require("./routes/authRoutes"));
+  app.use("/api/profile", require("./routes/profileRoutes"));
+  app.use("/api/users", require("./routes/userRoutes")); // 👈 ADD THIS LINE
+  // ✅ REQUIRED
 
 
-// ================== CATEGORY FLOW ==================
-app.use("/api/categories", require("./routes/categoryRoutes"));
-app.use("/api/subcategories", require("./routes/subCategoryRoutes"));
-app.use("/api/supercategories", require("./routes/superCategoryRoutes"));
-app.use("/api/products", require("./routes/productRoutes"));
 
-// ================== SLIDER BANNER ==================
-app.use("/api/sliders", require("./routes/sliderRoutes"));
 
-// ================== CART & USER DATA ==================
-app.use("/api/cart", require("./routes/cartRoutes"));
-app.use("/api/wishlist", require("./routes/wishlistRoutes"));
-app.use("/api/saved", require("./routes/savedProductRoutes"));
-app.use("/api/address", require("./routes/addressRoutes"));
+  // ================== CATEGORY FLOW ==================
+  app.use("/api/categories", require("./routes/categoryRoutes"));
+  app.use("/api/subcategories", require("./routes/subCategoryRoutes"));
+  app.use("/api/supercategories", require("./routes/superCategoryRoutes"));
+  app.use("/api/products", require("./routes/productRoutes"));
 
-// ================== COMMENTS & CONTACT ==================
-app.use("/api/comment", require("./routes/commentRoutes"));
-app.use("/api/contact", require("./routes/contactRoutes"));
+  // ================== SLIDER BANNER ==================
+  app.use("/api/sliders", require("./routes/sliderRoutes"));
 
-// ================== ORDERS & PAYMENTS ==================
-app.use("/api/orders", require("./routes/orderRoutes"));
-app.use("/api/payments", require("./routes/paymentRoutes"));
+  // ================== CART & USER DATA ==================
+  app.use("/api/cart", require("./routes/cartRoutes"));
+  app.use("/api/wishlist", require("./routes/wishlistRoutes"));
+  app.use("/api/saved", require("./routes/savedProductRoutes"));
+  app.use("/api/address", require("./routes/addressRoutes"));
 
- app.use("/api/admin", require("./routes/adminRoutes"));
-app.use("/api/admin/orders", require("./routes/adminOrderRoutes"));
-app.use("/api/notifications", require("./routes/notificationRoutes"));
+  // ================== COMMENTS & CONTACT ==================
+  app.use("/api/comment", require("./routes/commentRoutes"));
+  app.use("/api/contact", require("./routes/contactRoutes"));
 
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+  // ================== ORDERS & PAYMENTS ==================
+  app.use("/api/orders", require("./routes/orderRoutes"));
+  app.use("/api/payments", require("./routes/paymentRoutes"));
 
-// ================== ROOT ==================
-app.get("/", (req, res) => {
-  res.send("✅ ShopKart API Running Successfully");
-});
+  app.use("/api/admin", require("./routes/adminRoutes"));
+  app.use("/api/admin/orders", require("./routes/adminOrderRoutes"));
+  app.use("/api/notifications", require("./routes/notificationRoutes"));
 
-// ================== 404 ==================
-app.use((req, res) => {
-  res.status(404).json({ message: "API route not found" });
-});
+  app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-module.exports = app;
+  // ================== ROOT ==================
+  app.get("/", (req, res) => {
+    res.send("✅ ShopKart API Running Successfully");
+  });
+
+  // ================== 404 ==================
+  app.use((req, res) => {
+    res.status(404).json({ message: "API route not found" });
+  });
+
+  module.exports = app;

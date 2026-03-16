@@ -8,7 +8,8 @@ const {
   removeItem,
   clearCart,
   toggleSelectItem,
-  removeSelectedItems
+  removeSelectedItems,
+  getUserCart,
 } = require("../controllers/cartController");
 
 // ➕ add
@@ -27,5 +28,6 @@ router.delete("/remove", removeItem);
 router.delete("/clear/:userId", clearCart);
 router.put("/select", toggleSelectItem);
 router.put("/remove-selected", removeSelectedItems);
+router.get("/:userId", getUserCart);
 
 module.exports = router;
