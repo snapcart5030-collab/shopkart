@@ -61,7 +61,7 @@ exports.addToCart = async (req, res) => {
   }
 };
 
-const getUserCart = async (req, res) => {
+exports.getUserCart = async (req, res) => {
   try {
     const { userId } = req.params;
 
