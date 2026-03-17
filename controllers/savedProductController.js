@@ -1,15 +1,41 @@
 const SavedProduct = require("../models/SavedProduct");
 
+
+
+// 👑 ADMIN - GET ALL SAVED PRODUCTS
+
+exports.getAllSavedProducts = async (req, res) => {
+  try {
+
+    const savedProducts = await SavedProduct.find({}).sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      count: savedProducts.length,
+      savedProducts
+    });
+
+  } catch (error) {
+
+    console.error("ADMIN SAVED PRODUCTS ERROR:", error);
+
+    res.status(500).json({
+      message: "Failed to fetch saved products"
+    });
+
+  }
+};
 // 🔖 SAVE PRODUCT
 exports.saveProduct = async (req, res) => {
   try {
-    const { userId, product } = req.body;
+    const { userId, email, product } = req.body; // ✅ include email
 
     let saved = await SavedProduct.findOne({ userId });
 
     if (!saved) {
       saved = new SavedProduct({
         userId,
+        email,               // ✅ save email
         products: [product]
       });
     } else {
@@ -26,7 +52,6 @@ exports.saveProduct = async (req, res) => {
     res.json(saved.products);
 
   } catch (err) {
-    console.error("SAVE PRODUCT ERROR", err);
     res.status(500).json({ message: "Failed to save product" });
   }
 };

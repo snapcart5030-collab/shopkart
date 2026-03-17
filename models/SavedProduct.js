@@ -7,6 +7,11 @@ const savedProductSchema = new mongoose.Schema(
       required: true,
       unique: true
     },
+     email: {                 // ✅ ADD THIS
+      type: String,
+      required: true
+    },
+
 
     products: [
       {
