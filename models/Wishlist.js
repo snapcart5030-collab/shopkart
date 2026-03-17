@@ -6,6 +6,10 @@ const wishlistSchema = new mongoose.Schema(
       type: String,
       required: true
     },
+      email: {
+      type: String,
+      required: true // ✅ ADD THIS
+    },
     items: [
       {
         productId: String,
