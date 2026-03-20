@@ -19,16 +19,16 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ userId });
 
     if (!cart) {
-      // NEW CART - set isSelected to true by default
       product.isSelected = true;
+
+      const items = [product];
 
       cart = await Cart.create({
         userId,
         email,
-        items: [product],
-        totalPrice: 0
+        items,
+        totalPrice: calculateTotal(items)   // ✅ FIX
       });
-
     } else {
       const index = cart.items.findIndex(
         (i) =>
@@ -50,7 +50,10 @@ exports.addToCart = async (req, res) => {
       await cart.save();
     }
 
-    res.json(cart);
+    res.json({
+      items: cart.items,
+      totalPrice: cart.totalPrice
+    });
 
   } catch (error) {
     console.error("ADD TO CART ERROR:", error);
@@ -58,6 +61,18 @@ exports.addToCart = async (req, res) => {
       message: "Add to cart failed",
       error: error.message
     });
+  }
+};
+
+
+
+export const toggleSelectAPI = async (data) => {
+  try {
+    const response = await axios.put(`${API_URL}/cart/select`, data);
+    return response.data;
+  } catch (error) {
+    console.error("Toggle select API error:", error);
+    throw error;
   }
 };
 
@@ -91,7 +106,10 @@ exports.getUserCart = async (req, res) => {
       return res.status(404).json({ message: "Cart not found" });
     }
 
-    res.json(cart);
+    res.json({
+      items: cart.items,
+      totalPrice: cart.totalPrice
+    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -123,7 +141,10 @@ exports.toggleSelectItem = async (req, res) => {
     cart.totalPrice = calculateTotal(cart.items);
     await cart.save();
 
-    res.json(cart);
+    res.json({
+      items: cart.items,
+      totalPrice: cart.totalPrice
+    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -142,7 +163,10 @@ exports.removeSelectedItems = async (req, res) => {
 
     await cart.save();
 
-    res.json(cart);
+    res.json({
+      items: cart.items,
+      totalPrice: cart.totalPrice
+    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -154,7 +178,15 @@ exports.removeSelectedItems = async (req, res) => {
 exports.getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ userId: req.params.userId });
-    res.json(cart || { items: [], totalPrice: 0 });
+
+    if (!cart) {
+      return res.json({ items: [], totalPrice: 0 }); // NOT 404
+    }
+
+    res.json({
+      items: cart.items,
+      totalPrice: cart.totalPrice
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -184,7 +216,10 @@ exports.updateQuantity = async (req, res) => {
     cart.totalPrice = calculateTotal(cart.items);
     await cart.save();
 
-    res.json(cart);
+    res.json({
+      items: cart.items,
+      totalPrice: cart.totalPrice
+    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -210,7 +245,10 @@ exports.removeItem = async (req, res) => {
     cart.totalPrice = calculateTotal(cart.items);
     await cart.save();
 
-    res.json(cart);
+    res.json({
+      items: cart.items,
+      totalPrice: cart.totalPrice
+    });
 
   } catch (error) {
     res.status(500).json({ message: error.message });
