@@ -28,17 +28,23 @@ exports.getAllSavedProducts = async (req, res) => {
 // 🔖 SAVE PRODUCT
 exports.saveProduct = async (req, res) => {
   try {
-    const { userId, email, product } = req.body; // ✅ include email
+    const { userId, email, product } = req.body;
+
+    if (!userId || !email || !product?.productId) {
+      return res.status(400).json({ message: "Invalid data" });
+    }
 
     let saved = await SavedProduct.findOne({ userId });
 
     if (!saved) {
       saved = new SavedProduct({
         userId,
-        email,               // ✅ save email
+        email,
         products: [product]
       });
     } else {
+      saved.email = email;
+
       const exists = saved.products.find(
         (p) => p.productId === product.productId
       );
@@ -52,7 +58,11 @@ exports.saveProduct = async (req, res) => {
     res.json(saved.products);
 
   } catch (err) {
-    res.status(500).json({ message: "Failed to save product" });
+    console.error("SAVE PRODUCT ERROR:", err);
+    res.status(500).json({
+      message: "Failed to save product",
+      error: err.message
+    });
   }
 };
 
