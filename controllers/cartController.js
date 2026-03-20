@@ -61,14 +61,17 @@ exports.addToCart = async (req, res) => {
 };
 
 // 📥 GET CART
+// 📥 GET CART
 exports.getCart = async (req, res) => {
   try {
     const cart = await Cart.findOne({ userId: req.params.userId });
     if (!cart) {
-      return res.json({ items: [], totalPrice: 0 });
+      // Return 404 so frontend knows cart doesn't exist
+      return res.status(404).json({ message: "Cart not found" });
     }
     res.json(cart);
   } catch (error) {
+    console.error("Get cart error:", error);
     res.status(500).json({ message: error.message });
   }
 };

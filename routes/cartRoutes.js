@@ -17,14 +17,14 @@ const {
 // ➕ ADD TO CART
 router.post("/add", addToCart);
 
-// 📥 GET USER CART
-router.get("/user/:userId", getUserCart);
+// 📥 GET USER CART - FIXED: changed from /user/:userId to /:userId
+router.get("/:userId", getCart);
 
-// 🔄 UPDATE QUANTITY
-router.put("/update", updateQuantity);
+// 🔄 UPDATE QUANTITY - FIXED: changed from /update to /update-quantity
+router.put("/update-quantity", updateQuantity);
 
-// ❌ REMOVE ITEM
-router.delete("/remove", removeItem);
+// ❌ REMOVE ITEM - FIXED: changed from /remove to /remove-item
+router.delete("/remove-item", removeItem);
 
 // 🧹 CLEAR CART
 router.delete("/clear/:userId", clearCart);
