@@ -7,7 +7,6 @@ const calculateTotal = (items) =>
     .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
 // ➕ ADD TO CART
-// ➕ ADD TO CART
 exports.addToCart = async (req, res) => {
   try {
     const { userId, email, product } = req.body;
@@ -19,16 +18,16 @@ exports.addToCart = async (req, res) => {
     let cart = await Cart.findOne({ userId });
 
     if (!cart) {
+      // NEW CART - set isSelected to true by default
       product.isSelected = true;
-
-      const items = [product];
 
       cart = await Cart.create({
         userId,
         email,
-        items,
-        totalPrice: calculateTotal(items)   // ✅ FIX
+        items: [product],
+        totalPrice: 0
       });
+
     } else {
       const index = cart.items.findIndex(
         (i) =>
@@ -50,10 +49,7 @@ exports.addToCart = async (req, res) => {
       await cart.save();
     }
 
-    res.json({
-      items: cart.items,
-      totalPrice: cart.totalPrice
-    });
+    res.json(cart);
 
   } catch (error) {
     console.error("ADD TO CART ERROR:", error);
@@ -64,30 +60,28 @@ exports.addToCart = async (req, res) => {
   }
 };
 
-
-
-export const toggleSelectAPI = async (data) => {
+// 📥 GET CART
+exports.getCart = async (req, res) => {
   try {
-    const response = await axios.put(`${API_URL}/cart/select`, data);
-    return response.data;
+    const cart = await Cart.findOne({ userId: req.params.userId });
+    if (!cart) {
+      return res.json({ items: [], totalPrice: 0 });
+    }
+    res.json(cart);
   } catch (error) {
-    console.error("Toggle select API error:", error);
-    throw error;
+    res.status(500).json({ message: error.message });
   }
 };
 
 // 📦 ADMIN - GET ALL USERS CART
 exports.getAllCarts = async (req, res) => {
   try {
-
     const carts = await Cart.find({}).sort({ createdAt: -1 });
-
     res.json({
       success: true,
       count: carts.length,
       carts
     });
-
   } catch (error) {
     res.status(500).json({
       message: "Failed to fetch carts",
@@ -99,26 +93,15 @@ exports.getAllCarts = async (req, res) => {
 exports.getUserCart = async (req, res) => {
   try {
     const { userId } = req.params;
-
     const cart = await Cart.findOne({ userId });
-
     if (!cart) {
       return res.status(404).json({ message: "Cart not found" });
     }
-
-    res.json({
-      items: cart.items,
-      totalPrice: cart.totalPrice
-    });
-
+    res.json(cart);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
-
-
-
 
 // ☑️ SELECT / UNSELECT ITEM
 exports.toggleSelectItem = async (req, res) => {
@@ -141,10 +124,7 @@ exports.toggleSelectItem = async (req, res) => {
     cart.totalPrice = calculateTotal(cart.items);
     await cart.save();
 
-    res.json({
-      items: cart.items,
-      totalPrice: cart.totalPrice
-    });
+    res.json(cart);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -163,30 +143,8 @@ exports.removeSelectedItems = async (req, res) => {
 
     await cart.save();
 
-    res.json({
-      items: cart.items,
-      totalPrice: cart.totalPrice
-    });
+    res.json(cart);
 
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
-
-// 📥 GET CART
-exports.getCart = async (req, res) => {
-  try {
-    const cart = await Cart.findOne({ userId: req.params.userId });
-
-    if (!cart) {
-      return res.json({ items: [], totalPrice: 0 }); // NOT 404
-    }
-
-    res.json({
-      items: cart.items,
-      totalPrice: cart.totalPrice
-    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -216,10 +174,7 @@ exports.updateQuantity = async (req, res) => {
     cart.totalPrice = calculateTotal(cart.items);
     await cart.save();
 
-    res.json({
-      items: cart.items,
-      totalPrice: cart.totalPrice
-    });
+    res.json(cart);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -245,14 +200,10 @@ exports.removeItem = async (req, res) => {
     cart.totalPrice = calculateTotal(cart.items);
     await cart.save();
 
-    res.json({
-      items: cart.items,
-      totalPrice: cart.totalPrice
-    });
+    res.json(cart);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
-
   }
 };
 
