@@ -4,6 +4,7 @@ const router = express.Router();
 const {
   addToWishlist,
   getWishlist,
+  getAllWishlists,
   removeFromWishlist
 } = require("../controllers/wishlistController");
 

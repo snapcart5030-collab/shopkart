@@ -3,9 +3,9 @@ const Wishlist = require("../models/Wishlist");
 /* ================= ADD ================= */
 exports.addToWishlist = async (req, res) => {
   try {
-    const { userId, product } = req.body;
+    const { userId, email, product } = req.body;
 
-    if (!userId || !product?.productId) {
+    if (!userId || !email || !product?.productId) {
       return res.status(400).json({ message: "Invalid data" });
     }
 
@@ -21,8 +21,13 @@ exports.addToWishlist = async (req, res) => {
     let wishlist = await Wishlist.findOne({ userId });
 
     if (!wishlist) {
-      wishlist = new Wishlist({ userId, items: [product] });
+      wishlist = new Wishlist({
+        userId,
+        email,
+        items: [product]
+      });
     } else {
+      wishlist.email = email; // optional but good
       wishlist.items.push(product);
     }
 
@@ -31,7 +36,10 @@ exports.addToWishlist = async (req, res) => {
 
   } catch (err) {
     console.error("ADD WISHLIST ERROR 🔥", err);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({
+      message: "Server error",
+      error: err.message
+    });
   }
 };
 
