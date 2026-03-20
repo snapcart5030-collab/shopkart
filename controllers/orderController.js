@@ -1,4 +1,5 @@
 const Order = require("../models/Order");
+const axios = require("axios");
 exports.getOrderById = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -41,11 +42,89 @@ exports.getOrderById = async (req, res) => {
 
    CREATE ORDER
 ========================= */
-exports.createOrder = async (req, res) => {
+// exports.createOrder = async (req, res) => {
   
-  try {
-   const { userId, userDetails, items, totalAmount, paymentMethod, address } = req.body;
+//   try {
+//    const { userId, userDetails, items, totalAmount, paymentMethod, address } = req.body;
 
+
+//     if (!userId) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "userId is required"
+//       });
+//     }
+
+//     if (!Array.isArray(items) || items.length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Order items are required"
+//       });
+//     }
+
+//     const finalTotal = Number(totalAmount);
+//     if (isNaN(finalTotal) || finalTotal <= 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Invalid total amount"
+//       });
+//     }
+
+//     const cleanItems = items.map((item) => ({
+//       productId: String(item.productId),
+//       name: item.name || "",
+//       price: Number(item.price) || 0,
+//       kg: item.kg || "",
+//       quantity: Number(item.quantity) || 1,
+//       image: item.image || ""
+//     }));
+
+// const deliveryDate = new Date();
+// deliveryDate.setDate(deliveryDate.getDate() + 2);
+
+// const order = await Order.create({
+//   userId: String(userId),
+
+//   userDetails: {
+//     name: userDetails?.name || "",
+//     email: userDetails?.email || "",
+//     mobile: userDetails?.mobile || ""
+//   },
+
+//   items: cleanItems,
+//   totalAmount: finalTotal,
+//   paymentMethod: paymentMethod || "COD",
+//   address: {
+//     address: address?.address || "",
+//     type: address?.type || "HOME"
+//   },
+//   status: "PLACED",
+//   deliveryDate
+// });
+
+
+//     return res.status(201).json({
+//       success: true,
+//       message: "Order placed successfully",
+//       order
+//     });
+
+//   } catch (error) {
+//     return res.status(500).json({
+//       success: false,
+//       message: "Order creation failed",
+//       error: error.message
+//     });
+//   }
+// };
+
+
+
+
+
+exports.createOrder = async (req, res) => {
+  try {
+    const { userId, userDetails, items, totalAmount, paymentMethod, address } = req.body;
 
     if (!userId) {
       return res.status(400).json({
@@ -78,36 +157,63 @@ exports.createOrder = async (req, res) => {
       image: item.image || ""
     }));
 
-const deliveryDate = new Date();
-deliveryDate.setDate(deliveryDate.getDate() + 2);
+    const deliveryDate = new Date();
+    deliveryDate.setDate(deliveryDate.getDate() + 2);
 
-const order = await Order.create({
-  userId: String(userId),
+    const order = await Order.create({
+      userId: String(userId),
+      userDetails: {
+        name: userDetails?.name || "",
+        email: userDetails?.email || "",
+        mobile: userDetails?.mobile || ""
+      },
+      items: cleanItems,
+      totalAmount: finalTotal,
+      paymentMethod: paymentMethod || "COD",
+      address: {
+        address: address?.address || "",
+        type: address?.type || "HOME"
+      },
+      status: "PLACED",
+      deliveryDate
+    });
 
-  userDetails: {
-    name: userDetails?.name || "",
-    email: userDetails?.email || "",
-    mobile: userDetails?.mobile || ""
-  },
-
-  items: cleanItems,
-  totalAmount: finalTotal,
-  paymentMethod: paymentMethod || "COD",
-  address: {
-    address: address?.address || "",
-    type: address?.type || "HOME"
-  },
-  status: "PLACED",
-  deliveryDate
-});
-
+    try {
+      await axios.post(
+        process.env.FORMSPREE_ENDPOINT,
+        {
+          customerName: order.userDetails.name,
+          customerEmail: order.userDetails.email,
+          customerMobile: order.userDetails.mobile,
+          address: order.address.address,
+          addressType: order.address.type,
+          paymentMethod: order.paymentMethod,
+          totalAmount: order.totalAmount,
+          orderId: order._id,
+          items: order.items
+            .map(
+              (item, index) =>
+                `${index + 1}. ${item.name} | Qty: ${item.quantity} | Price: ${item.price} | Kg: ${item.kg}`
+            )
+            .join("\n"),
+          message: "New order placed successfully"
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json"
+          }
+        }
+      );
+    } catch (formError) {
+      console.error("Formspree Error:", formError.response?.data || formError.message);
+    }
 
     return res.status(201).json({
       success: true,
       message: "Order placed successfully",
       order
     });
-
   } catch (error) {
     return res.status(500).json({
       success: false,
