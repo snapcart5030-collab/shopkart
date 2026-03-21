@@ -17,9 +17,9 @@ exports.register = async (req, res) => {
 
     const user = await User.create({ mobile, name, email });
 
-    const token = generateToken(user._id);
 
-    res.json({ success: true, token, user });
+
+    res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -40,9 +40,9 @@ exports.login = async (req, res) => {
       user = await User.create({ mobile });
     }
 
-    const token = generateToken(user._id);
 
-    res.json({ success: true, token, user });
+
+    res.json({ success: true, user });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
