@@ -40,6 +40,7 @@
   // ================== COMMENTS & CONTACT ==================
   app.use("/api/comment", require("./routes/commentRoutes"));
   app.use("/api/contact", require("./routes/contactRoutes"));
+  app.use("/api/visitor", require("./routes/visitorRoutes"));
 
   // ================== ORDERS & PAYMENTS ==================
   app.use("/api/orders", require("./routes/orderRoutes"));
