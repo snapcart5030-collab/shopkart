@@ -1,6 +1,8 @@
   const express = require("express");
   const cors = require("cors");
   const path = require("path");
+  const websiteRoutes = require("./routes/websiteRoutes");
+const { checkWebsiteStatus } = require("./controllers/websiteController.js");
 
   const app = express();
 
@@ -12,6 +14,13 @@
   }));
 
   app.use(express.json());
+
+
+
+  app.use(checkWebsiteStatus);
+
+// routes add कर
+app.use("/api/website", websiteRoutes);
 
   // ================== AUTH & USER ==================
   app.use("/api/auth", require("./routes/authRoutes"));
