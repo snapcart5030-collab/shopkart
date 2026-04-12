@@ -1,9 +1,11 @@
-let isWebsiteOn = true;
+let isWebsiteOn = true; // Global state (will reset on server restart)
 
 // 👉 toggle ON/OFF
 exports.toggleWebsite = (req, res) => {
   isWebsiteOn = !isWebsiteOn;
-
+  
+  console.log(`Website status toggled to: ${isWebsiteOn ? "ON" : "OFF"}`);
+  
   res.json({
     success: true,
     websiteStatus: isWebsiteOn ? "ON" : "OFF"
@@ -17,11 +19,15 @@ exports.getWebsiteStatus = (req, res) => {
   });
 };
 
-// 👉 middleware use साठी
+// 👉 middleware - EXCLUDE toggle endpoint from blocking
 exports.checkWebsiteStatus = (req, res, next) => {
-  if (!isWebsiteOn && req.path !== "/api/toggle-website") {
+  // Allow toggle endpoint and status endpoint even when website is OFF
+  const allowedPaths = ["/api/website/toggle", "/api/website/status"];
+  
+  if (!isWebsiteOn && !allowedPaths.includes(req.path)) {
     return res.status(503).json({
-      message: "🚫 Website is currently down"
+      success: false,
+      message: "🚫 Website is currently down for maintenance"
     });
   }
   next();

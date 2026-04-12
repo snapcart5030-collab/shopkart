@@ -6,10 +6,10 @@ const {
   getWebsiteStatus
 } = require("../controllers/websiteController.js");
 
-// toggle ON/OFF
+// toggle ON/OFF (POST)
 router.post("/toggle", toggleWebsite);
 
-// get status
+// get status (GET)
 router.get("/status", getWebsiteStatus);
 
 module.exports = router;
