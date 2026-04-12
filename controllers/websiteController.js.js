@@ -19,12 +19,21 @@ exports.getWebsiteStatus = (req, res) => {
   });
 };
 
-// 👉 middleware - EXCLUDE toggle endpoint from blocking
+// 👉 middleware - EXCLUDE admin routes from blocking
 exports.checkWebsiteStatus = (req, res, next) => {
-  // Allow toggle endpoint and status endpoint even when website is OFF
-  const allowedPaths = ["/api/website/toggle", "/api/website/status"];
+  // Allow admin routes and toggle endpoints even when website is OFF
+  const allowedPaths = [
+    "/api/website/toggle", 
+    "/api/website/status",
+    "/api/admin",
+    "/api/admin/orders",
+    "/api/auth"
+  ];
   
-  if (!isWebsiteOn && !allowedPaths.includes(req.path)) {
+  // Check if current path starts with any allowed path
+  const isAllowed = allowedPaths.some(path => req.path.startsWith(path));
+  
+  if (!isWebsiteOn && !isAllowed) {
     return res.status(503).json({
       success: false,
       message: "🚫 Website is currently down for maintenance"
