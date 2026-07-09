@@ -1,4 +1,5 @@
-const admin = require("../config/firebaseAdmin");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
 const protect = async (req, res, next) => {
   try {
@@ -25,27 +26,37 @@ const protect = async (req, res, next) => {
       });
     }
 
-    let decodedToken;
+    // Verify JWT token
+    let decoded;
     try {
-     decodedToken = await admin.auth().verifyIdToken(token);
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
     } catch (error) {
+      if (error.name === "TokenExpiredError") {
+        return res.status(401).json({
+          success: false,
+          message: "Token expired. Please login again.",
+        });
+      }
       return res.status(401).json({
         success: false,
-        message: "Token expired or invalid. Please login again.",
+        message: "Invalid token. Please login again.",
       });
     }
 
-    if (!decodedToken.email_verified) {
-      return res.status(403).json({
+    // Get user from database
+    const user = await User.findById(decoded.id).select("-password");
+    
+    if (!user) {
+      return res.status(401).json({
         success: false,
-        message: "Email not verified. Please verify your email.",
+        message: "User not found. Please login again.",
       });
     }
 
-    // ✅ IMPORTANT: This sets req.user with the decoded token
-    req.user = decodedToken;
+    // Attach user to request
+    req.user = user;
+    console.log("✅ Authenticated User:", user.email);
 
-    console.log("✅ Authenticated User:", decodedToken.email);
     next();
 
   } catch (error) {
